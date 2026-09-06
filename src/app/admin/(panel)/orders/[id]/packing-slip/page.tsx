@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { STORE } from "@/lib/constants";
+import { formatOrderNo } from "@/lib/order-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +67,7 @@ export default async function PackingSlipPage({
           </div>
           <div className="text-right">
             <p className="text-sm font-medium text-stone-500">Packing Slip</p>
-            <p className="text-2xl font-bold text-stone-900">#{order.order_no}</p>
+            <p className="text-2xl font-bold text-stone-900">{formatOrderNo(order.order_no)}</p>
             <p className="text-sm text-stone-500">
               {new Date(order.created_at).toLocaleDateString("en-IN", {
                 day: "2-digit",
@@ -133,6 +134,12 @@ export default async function PackingSlipPage({
             <span className="text-stone-500">Subtotal</span>
             <span>{currency(Number(order.subtotal))}</span>
           </div>
+          {Number(order.discount_amount) > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Discount {order.coupon_code ? `(${order.coupon_code})` : ""}</span>
+              <span>-{currency(Number(order.discount_amount))}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-stone-500">Delivery</span>
             <span>{currency(Number(order.delivery_fee))}</span>

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { DEFAULTS } from "@/lib/constants";
+import { formatOrderNo } from "@/lib/order-utils";
 import { Card } from "@/components/ui/Card";
 import NotConfiguredBanner from "@/components/admin/NotConfiguredBanner";
 
@@ -100,7 +101,7 @@ export default async function DashboardPage() {
               <tbody>
                 {orders.slice(0, 6).map((o) => (
                   <tr key={o.id} className="border-b border-stone-100">
-                    <td className="py-2">#{o.order_no}</td>
+                    <td className="py-2">{formatOrderNo(o.order_no)}</td>
                     <td className="py-2 text-stone-600">{o.customer_name}</td>
                     <td className="py-2">{currency(Number(o.total))}</td>
                     <td className="py-2">

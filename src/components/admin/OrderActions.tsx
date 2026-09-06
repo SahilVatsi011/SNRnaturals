@@ -49,11 +49,13 @@ export function CourierForm({
   orderId,
   courierName,
   trackingId,
+  courierTrackingUrl,
   updateCourier,
 }: {
   orderId: string;
   courierName?: string | null;
   trackingId?: string | null;
+  courierTrackingUrl?: string | null;
   updateCourier: (id: string, formData: FormData) => void;
 }) {
   const router = useRouter();
@@ -84,6 +86,15 @@ export function CourierForm({
           name="tracking_id"
           defaultValue={trackingId ?? ""}
           placeholder="Tracking number provided by courier"
+        />
+      </div>
+      <div>
+        <Label htmlFor="courier_tracking_url">Courier Tracking URL</Label>
+        <Input
+          id="courier_tracking_url"
+          name="courier_tracking_url"
+          defaultValue={courierTrackingUrl ?? ""}
+          placeholder="Paste courier's tracking page link"
         />
       </div>
       <Button type="submit" disabled={isPending} variant="secondary">

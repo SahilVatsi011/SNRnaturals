@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SNR Naturals — Sundernagar Naturals",
-  description: "Prepaid online store for Sundernagar Naturals, Sundernagar, Mandi (HP).",
+  title: "SNR Naturals — Pure Himalayan Goodness",
+  description:
+    "Fresh, natural products straight from Sundernagar, Himachal Pradesh. Honey, spices, cold-pressed oils and more — delivered to your door.",
 };
 
 export default function RootLayout({
@@ -13,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-[#fafaf8] text-stone-900">{children}</body>
     </html>
   );
 }

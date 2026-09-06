@@ -7,6 +7,8 @@ const nav = [
   { href: "/admin", label: "Dashboard", icon: "📊", exact: true },
   { href: "/admin/orders", label: "Orders", icon: "🧾" },
   { href: "/admin/products", label: "Products", icon: "📦" },
+  { href: "/admin/coupons", label: "Coupons", icon: "🎟️" },
+  { href: "/admin/customers", label: "Customers", icon: "👥" },
   { href: "/admin/settings", label: "Settings", icon: "⚙️" },
 ];
 

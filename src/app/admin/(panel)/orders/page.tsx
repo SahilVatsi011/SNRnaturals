@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { DEFAULTS } from "@/lib/constants";
+import { formatOrderNo } from "@/lib/order-utils";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
 import NotConfiguredBanner from "@/components/admin/NotConfiguredBanner";
 
@@ -82,12 +83,13 @@ export default async function OrdersPage({
               <th className="px-4 py-3">Total</th>
               <th className="px-4 py-3">Payment</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {(orders ?? []).length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-stone-400">
+                <td colSpan={8} className="px-4 py-8 text-center text-stone-400">
                   No orders{activeFilter ? ` with status "${activeFilter}"` : ""}.
                 </td>
               </tr>
@@ -105,7 +107,7 @@ export default async function OrdersPage({
                       href={`/admin/orders/${o.id}`}
                       className="font-medium text-brand-600 hover:underline"
                     >
-                      #{o.order_no}
+                      {formatOrderNo(o.order_no)}
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-stone-600">
@@ -139,6 +141,17 @@ export default async function OrdersPage({
                   </td>
                   <td className="px-4 py-3">
                     <OrderStatusBadge status={o.order_status} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/orders/${o.id}`}
+                      className="inline-flex items-center gap-1 rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100"
+                    >
+                      View
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
                   </td>
                 </tr>
               );

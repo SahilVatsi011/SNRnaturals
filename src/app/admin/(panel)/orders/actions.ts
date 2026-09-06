@@ -49,12 +49,14 @@ export async function updateCourier(id: string, formData: FormData) {
 
   const courierName = String(formData.get("courier_name") || "");
   const trackingId = String(formData.get("tracking_id") || "");
+  const courierTrackingUrl = String(formData.get("courier_tracking_url") || "");
 
   const { error } = await supabase
     .from("orders")
     .update({
       courier_name: courierName,
       tracking_id: trackingId,
+      courier_tracking_url: courierTrackingUrl || null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);

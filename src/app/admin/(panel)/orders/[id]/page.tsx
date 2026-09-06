@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { STORE } from "@/lib/constants";
-import { buildWhatsAppDispatchLink } from "@/lib/whatsapp";
+import {
+  buildWhatsAppOrderReceivedLink,
+  buildWhatsAppDispatchLink,
+  buildWhatsAppDeliveredLink,
+} from "@/lib/whatsapp";
+import { formatOrderNo } from "@/lib/order-utils";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
@@ -59,12 +64,29 @@ export default async function OrderDetailPage({
 
   const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
   const trackingUrl = `${STORE.appUrl}/track/${order.order_token}`;
-  const whatsappLink = buildWhatsAppDispatchLink({
+
+  const whatsappReceivedLink = buildWhatsAppOrderReceivedLink({
+    phone: order.customer_phone,
+    customerName: order.customer_name,
+    orderNo: order.order_no,
+    total: Number(order.total),
+    trackingUrl,
+  });
+
+  const whatsappDispatchLink = buildWhatsAppDispatchLink({
     phone: order.customer_phone,
     customerName: order.customer_name,
     orderNo: order.order_no,
     courierName: order.courier_name,
     trackingId: order.tracking_id,
+    trackingUrl,
+    courierTrackingUrl: order.courier_tracking_url || undefined,
+  });
+
+  const whatsappDeliveredLink = buildWhatsAppDeliveredLink({
+    phone: order.customer_phone,
+    customerName: order.customer_name,
+    orderNo: order.order_no,
     trackingUrl,
   });
 
@@ -73,7 +95,7 @@ export default async function OrderDetailPage({
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-stone-800">
-            Order #{order.order_no}
+            Order {formatOrderNo(order.order_no)}
           </h1>
           <p className="text-sm text-stone-500">
             Placed{" "}
@@ -89,8 +111,16 @@ export default async function OrderDetailPage({
               🖨️ Packing Slip
             </Button>
           </Link>
-          <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-            <Button variant="secondary" size="sm">📱 WhatsApp Dispatch</Button>
+          <a href={whatsappReceivedLink} target="_blank" rel="noopener noreferrer">
+            <Button variant="secondary" size="sm">📱 WA: Order Received</Button>
+          </a>
+          {(order.courier_name || order.order_status === "shipped") && (
+            <a href={whatsappDispatchLink} target="_blank" rel="noopener noreferrer">
+              <Button variant="secondary" size="sm">🚚 WA: Dispatched</Button>
+            </a>
+          )}
+          <a href={whatsappDeliveredLink} target="_blank" rel="noopener noreferrer">
+            <Button variant="secondary" size="sm">🎉 WA: Delivered</Button>
           </a>
         </div>
       </div>
@@ -127,6 +157,12 @@ export default async function OrderDetailPage({
                 <span className="text-stone-500">Subtotal</span>
                 <span>{currency(Number(order.subtotal))}</span>
               </div>
+              {Number(order.discount_amount) > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Discount {order.coupon_code ? `(${order.coupon_code})` : ""}</span>
+                  <span>-{currency(Number(order.discount_amount))}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-stone-500">Delivery fee</span>
                 <span>{currency(Number(order.delivery_fee))}</span>
@@ -149,6 +185,7 @@ export default async function OrderDetailPage({
               orderId={order.id}
               courierName={order.courier_name}
               trackingId={order.tracking_id}
+              courierTrackingUrl={order.courier_tracking_url}
               updateCourier={updateCourier}
             />
           </Card>
