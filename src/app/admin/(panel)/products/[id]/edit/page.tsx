@@ -54,7 +54,6 @@ export default async function EditProductPage({
       <ProductForm
         initial={initial}
         feeConfig={feeConfig}
-        createAction={async () => {}}
         updateAction={updateProduct}
       />
     </div>

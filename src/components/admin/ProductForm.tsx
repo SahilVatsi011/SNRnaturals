@@ -25,7 +25,7 @@ export interface ProductFormData {
 interface ProductFormProps {
   initial?: ProductFormData;
   feeConfig: { razorpayFeeRate: number; smsCostPerOrder: number };
-  createAction: (formData: FormData) => Promise<{ error?: string } | void>;
+  createAction?: (formData: FormData) => Promise<{ error?: string } | void>;
   updateAction?: (
     id: string,
     formData: FormData
@@ -56,6 +56,7 @@ export function ProductForm({
     }
   );
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const set = <K extends keyof ProductFormData>(
     key: K,
@@ -72,6 +73,7 @@ export function ProductForm({
     if (!file) return;
 
     setUploading(true);
+    setUploadError(null);
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -85,8 +87,10 @@ export function ProductForm({
       if (data.url) {
         set("images", [...form.images, data.url]);
       } else {
-        console.error(data.error);
+        setUploadError(data.error || "Upload failed. Please try again.");
       }
+    } catch {
+      setUploadError("Upload failed. Please try again.");
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -118,7 +122,7 @@ export function ProductForm({
 
     if (form.id && updateAction) {
       updateAction(form.id, fd);
-    } else {
+    } else if (createAction) {
       createAction(fd);
     }
     router.refresh();
@@ -252,13 +256,16 @@ export function ProductForm({
                 <span className="text-xs">Upload</span>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   className="hidden"
                   onChange={handleImageUpload}
                   disabled={uploading}
                 />
               </label>
             </div>
+            {uploadError && (
+              <p className="mt-2 text-sm text-red-600">{uploadError}</p>
+            )}
           </div>
         </div>
 
