@@ -4,6 +4,7 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { DEFAULTS } from "@/lib/constants";
 import { formatOrderNo } from "@/lib/order-utils";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import OrdersExport from "@/components/admin/OrdersExport";
 import NotConfiguredBanner from "@/components/admin/NotConfiguredBanner";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +52,8 @@ export default async function OrdersPage({
           ({orders?.length ?? 0})
         </span>
       </h1>
+
+      <OrdersExport initialStatus={activeFilter} />
 
       {/* Status filter */}
       <div className="mb-4 flex flex-wrap gap-2">
