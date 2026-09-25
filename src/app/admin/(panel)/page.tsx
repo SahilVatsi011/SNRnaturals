@@ -101,7 +101,17 @@ export default async function DashboardPage() {
               <tbody>
                 {orders.slice(0, 6).map((o) => (
                   <tr key={o.id} className="border-b border-stone-100">
-                    <td className="py-2">{formatOrderNo(o.order_no)}</td>
+                    <td className="py-2">
+                      <div>{formatOrderNo(o.order_no)}</div>
+                      <div className="text-xs text-stone-400">
+                        {new Date(o.created_at).toLocaleString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
+                    </td>
                     <td className="py-2 text-stone-600">{o.customer_name}</td>
                     <td className="py-2">{currency(Number(o.total))}</td>
                     <td className="py-2">

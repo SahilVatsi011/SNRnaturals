@@ -111,10 +111,18 @@ export default async function OrdersPage({
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-stone-600">
-                    {new Date(o.created_at).toLocaleDateString("en-IN", {
-                      day: "2-digit",
-                      month: "short",
-                    })}
+                    <div>
+                      {new Date(o.created_at).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                      })}
+                    </div>
+                    <div className="text-xs text-stone-400">
+                      {new Date(o.created_at).toLocaleTimeString("en-IN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-stone-800">
