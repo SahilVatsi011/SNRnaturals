@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { logout } from "../auth-actions";
 import { AdminNav } from "@/components/admin/AdminNav";
-import NewOrdersAlert from "@/components/admin/NewOrdersAlert";
+import NotificationCenter from "@/components/admin/NotificationCenter";
 
 export default async function PanelLayout({
   children,
@@ -36,6 +36,9 @@ export default async function PanelLayout({
           </Link>
         </div>
 
+        <div className="p-3">
+          <NotificationCenter />
+        </div>
         <AdminNav />
 
         <div className="border-t border-stone-200 p-3">
@@ -51,10 +54,7 @@ export default async function PanelLayout({
         </div>
       </aside>
 
-      <main className="ml-60 flex-1 p-6">
-        <NewOrdersAlert />
-        {children}
-      </main>
+      <main className="ml-60 flex-1 p-6">{children}</main>
     </div>
   );
 }
