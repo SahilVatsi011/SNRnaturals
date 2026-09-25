@@ -64,6 +64,7 @@ export default async function OrderDetailPage({
 
   const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
   const trackingUrl = `${STORE.appUrl}/track/${order.order_token}`;
+  const paymentPaid = order.payment_status === "paid";
 
   const whatsappReceivedLink = buildWhatsAppOrderReceivedLink({
     phone: order.customer_phone,
@@ -114,16 +115,34 @@ export default async function OrderDetailPage({
           <a href={whatsappReceivedLink} target="_blank" rel="noopener noreferrer">
             <Button variant="secondary" size="sm">📱 WA: Order Received</Button>
           </a>
-          {(order.courier_name || order.order_status === "shipped") && (
-            <a href={whatsappDispatchLink} target="_blank" rel="noopener noreferrer">
-              <Button variant="secondary" size="sm">🚚 WA: Dispatched</Button>
-            </a>
-          )}
+          {paymentPaid &&
+            (order.courier_name || order.order_status === "shipped") && (
+              <a href={whatsappDispatchLink} target="_blank" rel="noopener noreferrer">
+                <Button variant="secondary" size="sm">🚚 WA: Dispatched</Button>
+              </a>
+            )}
           <a href={whatsappDeliveredLink} target="_blank" rel="noopener noreferrer">
             <Button variant="secondary" size="sm">🎉 WA: Delivered</Button>
           </a>
         </div>
       </div>
+
+      {!paymentPaid && (
+        <div className="mb-5 rounded-lg border-l-4 border-red-500 bg-red-50 px-4 py-3">
+          <p className="font-semibold text-red-700">
+            ⚠️ Payment{" "}
+            {order.payment_status === "failed" ? "failed" : "not done yet"} by
+            customer — do NOT dispatch until payment is confirmed.
+          </p>
+          <p className="mt-0.5 text-sm text-red-600">
+            Current payment status:{" "}
+            <span className="font-semibold uppercase">
+              {order.payment_status}
+            </span>
+            . Dispatched/Delivered tabhi set karein jab payment confirm ho.
+          </p>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -201,6 +220,7 @@ export default async function OrderDetailPage({
             <OrderStatusManager
               orderId={order.id}
               currentStatus={order.order_status}
+              paymentPaid={paymentPaid}
               updateStatus={updateOrderStatus}
             />
           </Card>

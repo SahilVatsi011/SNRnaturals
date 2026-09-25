@@ -9,10 +9,12 @@ import { DEFAULTS } from "@/lib/constants";
 export function OrderStatusManager({
   orderId,
   currentStatus,
+  paymentPaid = true,
   updateStatus,
 }: {
   orderId: string;
   currentStatus: string;
+  paymentPaid?: boolean;
   updateStatus: (id: string, formData: FormData) => void;
 }) {
   const router = useRouter();
@@ -25,23 +27,37 @@ export function OrderStatusManager({
     router.refresh();
   }
 
+  const dispatchBlocked = !paymentPaid;
+
   return (
-    <form action={handleSubmit} className="flex items-center gap-2">
-      <select
-        name="status"
-        defaultValue={currentStatus}
-        className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm capitalize focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
-      >
-        {DEFAULTS.orderStatuses.map((s) => (
-          <option key={s} value={s}>
-            {s.charAt(0).toUpperCase() + s.slice(1)}
-          </option>
-        ))}
-      </select>
-      <Button type="submit" size="sm" disabled={isPending}>
-        Update
-      </Button>
-    </form>
+    <div>
+      <form action={handleSubmit} className="flex items-center gap-2">
+        <select
+          name="status"
+          defaultValue={currentStatus}
+          className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm capitalize focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+        >
+          {DEFAULTS.orderStatuses.map((s) => (
+            <option
+              key={s}
+              value={s}
+              disabled={dispatchBlocked && (s === "shipped" || s === "delivered")}
+            >
+              {s.charAt(0).toUpperCase() + s.slice(1)}
+            </option>
+          ))}
+        </select>
+        <Button type="submit" size="sm" disabled={isPending}>
+          Update
+        </Button>
+      </form>
+      {dispatchBlocked && (
+        <p className="mt-2 text-xs font-medium text-red-600">
+          ⚠️ Payment pending — Shipped and Delivered are blocked until customer
+          payment is confirmed.
+        </p>
+      )}
+    </div>
   );
 }
 

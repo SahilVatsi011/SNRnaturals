@@ -23,6 +23,20 @@ export async function updateOrderStatus(id: string, formData: FormData) {
     return { error: "Invalid status" };
   }
 
+  // Safety guard: never dispatch/deliver an order whose payment is not confirmed.
+  if (status === "shipped" || status === "delivered") {
+    const { data: order } = await supabase
+      .from("orders")
+      .select("payment_status")
+      .eq("id", id)
+      .single();
+    if (!order || order.payment_status !== "paid") {
+      return {
+        error: "Cannot set shipped/delivered — payment not confirmed yet.",
+      };
+    }
+  }
+
   const patch: Record<string, unknown> = {
     order_status: status,
     updated_at: new Date().toISOString(),

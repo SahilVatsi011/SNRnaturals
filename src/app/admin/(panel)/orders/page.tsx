@@ -142,9 +142,7 @@ export default async function OrdersPage({
                       className={`rounded px-2 py-0.5 text-xs capitalize ${
                         o.payment_status === "paid"
                           ? "bg-green-100 text-green-700"
-                          : o.payment_status === "failed"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-amber-100 text-amber-700"
+                          : "bg-red-100 text-red-700"
                       }`}
                     >
                       {o.payment_status}
