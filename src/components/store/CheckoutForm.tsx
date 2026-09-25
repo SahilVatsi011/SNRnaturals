@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   getCart,
-  saveCart,
   cartSubtotal,
   cartWeight,
   cartCount,
@@ -101,11 +100,10 @@ export function CheckoutForm({
       return;
     }
 
-    // Clear cart immediately
-    saveCart([]);
-    window.dispatchEvent(new Event("snr:cart"));
-
-    // Redirect to payment page with Razorpay order details
+    // Redirect to payment page with Razorpay order details.
+    // The cart is NOT cleared here — if the customer cancels
+    // payment it must survive. It is cleared only after the
+    // payment is verified successfully on the payment page.
     const params = new URLSearchParams({
       orderId: result.orderId!,
       razorpayOrderId: result.razorpayOrderId!,

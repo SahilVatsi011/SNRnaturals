@@ -3,6 +3,12 @@
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyPayment } from "../actions";
+import { saveCart } from "@/lib/cart";
+
+function clearCart() {
+  saveCart([]);
+  window.dispatchEvent(new Event("snr:cart"));
+}
 
 type Stage = "loading" | "ready" | "processing" | "success" | "error";
 
@@ -83,6 +89,9 @@ function RazorpayPaymentPage() {
           setStage("error");
           return;
         }
+        // Payment verified — order is paid. Only now clear the cart
+        // so a cancelled/failed payment never wipes it.
+        clearCart();
         setStage("success");
         setTimeout(() => {
           router.push(`/checkout/confirmed?token=${result.orderToken}`);
