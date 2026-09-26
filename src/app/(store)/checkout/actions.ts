@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { generateOrderToken } from "@/lib/order-utils";
 import { calculateDeliveryFee, type DeliverySlab } from "@/lib/delivery";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay";
+import { normalizePhone } from "@/lib/phone";
 
 interface CartLine {
   product_id: string;
@@ -33,6 +34,11 @@ export async function createOrder(
 
   if (!customerName || !customerPhone || !addressLine1 || !city || !state || !pincode) {
     return { error: "Please fill in all required fields." };
+  }
+
+  // WhatsApp number is mandatory and must be a valid Indian mobile number
+  if (!normalizePhone(customerPhone)) {
+    return { error: "Enter a valid 10-digit WhatsApp number." };
   }
 
   // Parse cart lines from JSON

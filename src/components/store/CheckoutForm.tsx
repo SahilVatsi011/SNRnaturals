@@ -10,12 +10,15 @@ import {
   cartCount,
   type CartItem,
 } from "@/lib/cart";
+import { normalizePhone } from "@/lib/phone";
 import { calculateDeliveryFee } from "@/lib/delivery";
 import type { DeliverySlab } from "@/lib/delivery";
 
 function price(n: number) {
   return "\u20B9" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 }
+
+const inputClass = "w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500";
 
 export function CheckoutForm({
   slabs,
@@ -33,6 +36,7 @@ export function CheckoutForm({
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Coupon state
@@ -93,6 +97,15 @@ export function CheckoutForm({
       fd.set("coupon_code", appliedCoupon.code);
     }
 
+    // WhatsApp number is mandatory and must be a valid Indian mobile number
+    const customerPhone = String(fd.get("customer_phone") || "").trim();
+    if (!customerPhone || !normalizePhone(customerPhone)) {
+      setPhoneError("Enter a valid 10-digit WhatsApp number (e.g. 9876543210).");
+      setSubmitting(false);
+      return;
+    }
+    setPhoneError(null);
+
     const result = await createOrder(fd);
     if (result.error) {
       setError(result.error);
@@ -100,10 +113,6 @@ export function CheckoutForm({
       return;
     }
 
-    // Redirect to payment page with Razorpay order details.
-    // The cart is NOT cleared here — if the customer cancels
-    // payment it must survive. It is cleared only after the
-    // payment is verified successfully on the payment page.
     const params = new URLSearchParams({
       orderId: result.orderId!,
       razorpayOrderId: result.razorpayOrderId!,
@@ -115,14 +124,14 @@ export function CheckoutForm({
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-7xl px-5 py-20 text-center sm:px-8 lg:px-8">
-        <div className="mx-auto w-fit rounded-full bg-stone-100 p-6">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.2} className="text-stone-400">
+        <div className="mx-auto w-fit rounded-full bg-gray-100 p-5">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.2} className="text-gray-400">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
         </div>
-        <h1 className="mt-5 font-display text-2xl font-bold text-stone-800">Your cart is empty</h1>
-        <p className="mt-2 text-stone-500">Add some products before checking out.</p>
-        <Link href="/" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-3 font-semibold text-white shadow-md shadow-brand-600/20 hover:bg-brand-700">
+        <h1 className="mt-4 text-xl font-bold text-gray-800">Your cart is empty</h1>
+        <p className="mt-1 text-sm text-gray-500">Add some products before checking out.</p>
+        <Link href="/" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700">
           Browse Products
         </Link>
       </div>
@@ -132,31 +141,31 @@ export function CheckoutForm({
   return (
     <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10 lg:px-8">
       {/* Header */}
-      <div className="mb-8">
-        <Link href="/cart" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-stone-400 hover:text-brand-600">
+      <div className="mb-6">
+        <Link href="/cart" className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-brand-600">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
           </svg>
           Back to cart
         </Link>
-        <h1 className="font-display text-2xl font-bold text-stone-800 sm:text-3xl">Checkout</h1>
-        <p className="mt-1 text-sm text-stone-400">{count} items &bull; {price(total)} total</p>
+        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Checkout</h1>
+        <p className="mt-0.5 text-sm text-gray-400">{count} items &bull; {price(total)} total</p>
       </div>
 
       {/* Checkout steps indicator */}
-      <div className="mb-8 flex items-center gap-3 text-sm font-medium">
+      <div className="mb-6 flex items-center gap-3 text-sm font-medium">
         <span className="flex items-center gap-1.5 text-brand-600">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">1</span>
           Details
         </span>
-        <div className="h-px flex-1 bg-stone-200" />
-        <span className="flex items-center gap-1.5 text-stone-400">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-stone-200 text-xs font-bold text-stone-500">2</span>
+        <div className="h-px flex-1 bg-gray-200" />
+        <span className="flex items-center gap-1.5 text-gray-400">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-500">2</span>
           Payment
         </span>
-        <div className="h-px flex-1 bg-stone-200" />
-        <span className="flex items-center gap-1.5 text-stone-400">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-stone-200 text-xs font-bold text-stone-500">3</span>
+        <div className="h-px flex-1 bg-gray-200" />
+        <span className="flex items-center gap-1.5 text-gray-400">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-500">3</span>
           Confirmed
         </span>
       </div>
@@ -164,65 +173,60 @@ export function CheckoutForm({
       <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-3">
         {/* Address form */}
         <div className="space-y-5 lg:col-span-2">
-          <div className="rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-            <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-stone-800">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="text-brand-600">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Your Details
-            </h2>
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
+            <h2 className="mb-4 text-base font-bold text-gray-800">Your Details</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label htmlFor="customer_name" className="mb-1 block text-sm font-medium text-stone-700">Full Name *</label>
-                <input id="customer_name" name="customer_name" required autoComplete="name"
-                  className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10" />
+                <label htmlFor="customer_name" className="mb-1 block text-sm font-medium text-gray-700">Full Name *</label>
+                <input id="customer_name" name="customer_name" required autoComplete="name" className={inputClass} />
               </div>
               <div>
-                <label htmlFor="customer_phone" className="mb-1 block text-sm font-medium text-stone-700">Phone Number *</label>
-                <input id="customer_phone" name="customer_phone" required type="tel" autoComplete="tel" placeholder="10-digit mobile"
-                  className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10" />
+                <label htmlFor="customer_phone" className="mb-1 block text-sm font-medium text-gray-700">WhatsApp Number *</label>
+                <input
+                  id="customer_phone"
+                  name="customer_phone"
+                  required
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  maxLength={15}
+                  placeholder="10-digit mobile e.g. 9876543210"
+                  className={`${inputClass} ${phoneError ? "border-red-400" : ""}`}
+                  onChange={() => setPhoneError(null)}
+                />
+                {phoneError && (
+                  <p className="mt-1 text-xs text-red-600">{phoneError}</p>
+                )}
               </div>
               <div className="sm:col-span-2">
-                <label htmlFor="email" className="mb-1 block text-sm font-medium text-stone-700">Email <span className="text-stone-400">(optional)</span></label>
-                <input id="email" name="email" type="email" autoComplete="email"
-                  className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10" />
+                <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">Email <span className="text-gray-400">(optional)</span></label>
+                <input id="email" name="email" type="email" autoComplete="email" className={inputClass} />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-            <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-stone-800">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="text-brand-600">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Delivery Address
-            </h2>
+          <div className="rounded-lg border border-gray-200 bg-white p-5">
+            <h2 className="mb-4 text-base font-bold text-gray-800">Delivery Address</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label htmlFor="address_line1" className="mb-1 block text-sm font-medium text-stone-700">Address Line 1 *</label>
-                <input id="address_line1" name="address_line1" required autoComplete="address-line1" placeholder="House no, street, area"
-                  className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10" />
+                <label htmlFor="address_line1" className="mb-1 block text-sm font-medium text-gray-700">Address Line 1 *</label>
+                <input id="address_line1" name="address_line1" required autoComplete="address-line1" placeholder="House no, street, area" className={inputClass} />
               </div>
               <div className="sm:col-span-2">
-                <label htmlFor="address_line2" className="mb-1 block text-sm font-medium text-stone-700">Address Line 2 <span className="text-stone-400">(optional)</span></label>
-                <input id="address_line2" name="address_line2" autoComplete="address-line2"
-                  className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10" />
+                <label htmlFor="address_line2" className="mb-1 block text-sm font-medium text-gray-700">Address Line 2 <span className="text-gray-400">(optional)</span></label>
+                <input id="address_line2" name="address_line2" autoComplete="address-line2" className={inputClass} />
               </div>
               <div>
-                <label htmlFor="city" className="mb-1 block text-sm font-medium text-stone-700">City *</label>
-                <input id="city" name="city" required autoComplete="address-level2"
-                  className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10" />
+                <label htmlFor="city" className="mb-1 block text-sm font-medium text-gray-700">City *</label>
+                <input id="city" name="city" required autoComplete="address-level2" className={inputClass} />
               </div>
               <div>
-                <label htmlFor="state" className="mb-1 block text-sm font-medium text-stone-700">State *</label>
-                <input id="state" name="state" required defaultValue="Himachal Pradesh"
-                  className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10" />
+                <label htmlFor="state" className="mb-1 block text-sm font-medium text-gray-700">State *</label>
+                <input id="state" name="state" required defaultValue="Himachal Pradesh" className={inputClass} />
               </div>
               <div>
-                <label htmlFor="pincode" className="mb-1 block text-sm font-medium text-stone-700">PIN Code *</label>
-                <input id="pincode" name="pincode" required inputMode="numeric" autoComplete="postal-code"
-                  className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10" />
+                <label htmlFor="pincode" className="mb-1 block text-sm font-medium text-gray-700">PIN Code *</label>
+                <input id="pincode" name="pincode" required inputMode="numeric" autoComplete="postal-code" className={inputClass} />
               </div>
             </div>
           </div>
@@ -230,46 +234,42 @@ export function CheckoutForm({
 
         {/* Order summary */}
         <div>
-          <div className="sticky top-28 space-y-4">
-            <div className="rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-bold text-stone-800">Order Summary</h2>
+          <div className="sticky top-24 space-y-4">
+            <div className="rounded-lg border border-gray-200 bg-white p-5">
+              <h2 className="mb-3 text-base font-bold text-gray-800">Order Summary</h2>
 
               {/* Item list */}
-              <div className="mb-4 max-h-48 space-y-2 overflow-y-auto no-scrollbar">
+              <div className="mb-3 max-h-48 space-y-2 overflow-y-auto no-scrollbar">
                 {items.map((item) => (
                   <div key={item.product_id} className="flex items-center gap-3 text-sm">
                     {item.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.image} alt={item.name} className="h-10 w-10 rounded-lg object-cover" />
+                      <img src={item.image} alt={item.name} className="h-10 w-10 rounded object-cover" />
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-stone-100">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1} className="text-stone-300">
+                      <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-100">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1} className="text-gray-300">
                           <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-stone-700">{item.name}</p>
-                      <p className="text-xs text-stone-400">Qty: {item.qty}</p>
+                      <p className="truncate text-sm font-medium text-gray-700">{item.name}</p>
+                      <p className="text-xs text-gray-400">Qty: {item.qty}</p>
                     </div>
-                    <span className="shrink-0 font-medium text-stone-700">{price(item.price * item.qty)}</span>
+                    <span className="shrink-0 text-sm font-medium text-gray-700">{price(item.price * item.qty)}</span>
                   </div>
                 ))}
               </div>
 
-              {/* Coupon code (optional) */}
-              <div className="mb-3 border-t border-stone-100 pt-3">
+              {/* Coupon code */}
+              <div className="mb-3 border-t border-gray-100 pt-3">
                 {appliedCoupon ? (
-                  <div className="flex items-center justify-between rounded-xl bg-green-50 px-3 py-2">
+                  <div className="flex items-center justify-between rounded-lg bg-green-50 px-3 py-2">
                     <div>
                       <span className="font-mono text-sm font-bold text-green-700">{appliedCoupon.code}</span>
                       <span className="ml-2 text-sm text-green-600">({appliedCoupon.percent}% off)</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleRemoveCoupon}
-                      className="text-xs font-medium text-red-500 hover:text-red-700"
-                    >
+                    <button type="button" onClick={handleRemoveCoupon} className="text-xs font-medium text-red-500 hover:text-red-700">
                       Remove
                     </button>
                   </div>
@@ -281,48 +281,36 @@ export function CheckoutForm({
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                         placeholder="Coupon code"
-                        className="flex-1 rounded-xl border border-stone-200 bg-stone-50/50 px-3 py-2 font-mono text-sm uppercase transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10"
+                        className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-sm uppercase focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                       />
                       <button
                         type="button"
                         onClick={handleApplyCoupon}
                         disabled={couponLoading || !couponInput.trim()}
-                        className="shrink-0 rounded-xl bg-stone-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-stone-700 disabled:opacity-50"
+                        className="shrink-0 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:opacity-50"
                       >
                         {couponLoading ? "..." : "Apply"}
                       </button>
                     </div>
-                    {couponError && (
-                      <p className="mt-1.5 text-xs text-red-500">{couponError}</p>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setCouponOpen(false)}
-                      className="mt-1.5 text-xs text-stone-400 hover:text-stone-600"
-                    >
+                    {couponError && <p className="mt-1.5 text-xs text-red-500">{couponError}</p>}
+                    <button type="button" onClick={() => setCouponOpen(false)} className="mt-1.5 text-xs text-gray-400 hover:text-gray-600">
                       Skip coupon
                     </button>
                   </div>
                 ) : (
                   <button
                     type="button"
-                    onClick={() => {
-                      setCouponOpen(true);
-                      setCouponError(null);
-                    }}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-stone-200 px-3 py-2 text-xs font-medium text-stone-400 transition-colors hover:border-brand-200 hover:text-brand-600"
+                    onClick={() => { setCouponOpen(true); setCouponError(null); }}
+                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-gray-400 transition-colors hover:border-brand-300 hover:text-brand-600"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
                     Have a coupon code? (optional)
                   </button>
                 )}
               </div>
 
-              <div className="space-y-2 border-t border-stone-100 pt-3 text-sm">
+              <div className="space-y-2 border-t border-gray-100 pt-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Subtotal ({count} items)</span>
+                  <span className="text-gray-500">Subtotal ({count} items)</span>
                   <span className="font-medium">{price(subtotal)}</span>
                 </div>
                 {discountAmount > 0 && (
@@ -332,21 +320,21 @@ export function CheckoutForm({
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-stone-500">Delivery</span>
+                  <span className="text-gray-500">Delivery</span>
                   <span className="font-medium">{deliveryFee > 0 ? price(deliveryFee) : "Free"}</span>
                 </div>
               </div>
 
-              <div className="my-3 border-t border-dashed border-stone-200" />
+              <div className="my-3 border-t border-dashed border-gray-200" />
 
-              <div className="flex justify-between text-lg">
+              <div className="flex justify-between text-base">
                 <span className="font-bold">Total</span>
                 <span className="font-bold text-brand-700">{price(total)}</span>
               </div>
             </div>
 
             {error && (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 {error}
               </div>
             )}
@@ -354,11 +342,11 @@ export function CheckoutForm({
             <button
               type="submit"
               disabled={submitting}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-600 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-brand-600/20 transition-all hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-xl disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
             >
               {submitting ? (
                 <>
-                  <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
@@ -367,15 +355,15 @@ export function CheckoutForm({
               ) : (
                 <>
                   Proceed to Payment
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </>
               )}
             </button>
 
-            <div className="flex items-center justify-center gap-1.5 text-xs text-stone-400">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               Your information is secure
