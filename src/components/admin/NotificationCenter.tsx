@@ -39,6 +39,16 @@ function isUnread(item: NotifItem, seen: Seen): boolean {
   return !(k in seen);
 }
 
+function isDismissed(item: NotifItem, seen: Seen): boolean {
+  const k = keyOf(item);
+  if (item.itemType === "stock") {
+    const v = seen[k];
+    if (v === undefined) return false;
+    return item.stock_qty >= (typeof v === "number" ? v : Number.MAX_SAFE_INTEGER);
+  }
+  return k in seen;
+}
+
 function markItem(item: NotifItem, seen: Seen): Seen {
   const k = keyOf(item);
   return {
@@ -203,14 +213,15 @@ export default function NotificationCenter() {
     };
   }, [fetchFeed]);
 
-  const unreadCount = items.filter((it) => isUnread(it, seen)).length;
+  const displayItems = items.filter((it) => !isDismissed(it, seen));
+  const unreadCount = displayItems.filter((it) => isUnread(it, seen)).length;
 
   const clearItem = (item: NotifItem) => {
     setSeen((s) => markItem(item, s));
   };
 
   const clearAll = () => {
-    setSeen((s) => items.reduce((acc, it) => markItem(it, acc), s));
+    setSeen((s) => displayItems.reduce((acc, it) => markItem(it, acc), s));
   };
 
   const toggleNotifications = async () => {
@@ -274,7 +285,7 @@ export default function NotificationCenter() {
                 <button
                   type="button"
                   onClick={clearAll}
-                  disabled={items.length === 0}
+                  disabled={displayItems.length === 0}
                   className="rounded-md border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-100 disabled:opacity-40"
                 >
                   Clear all
@@ -283,13 +294,13 @@ export default function NotificationCenter() {
             </div>
 
             <div className="max-h-[60vh] overflow-y-auto p-2">
-              {items.length === 0 && (
+              {displayItems.length === 0 && (
                 <p className="px-3 py-8 text-center text-sm text-stone-400">
                   No notifications yet.
                 </p>
               )}
 
-              {items.map((item) => {
+              {displayItems.map((item) => {
                 const unread = isUnread(item, seen);
                 return (
                   <div
