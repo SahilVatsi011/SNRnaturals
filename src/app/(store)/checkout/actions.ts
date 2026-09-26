@@ -25,6 +25,7 @@ export async function createOrder(
 
   const customerName = String(formData.get("customer_name") || "").trim();
   const customerPhone = String(formData.get("customer_phone") || "").trim();
+  const customerWhatsapp = String(formData.get("customer_whatsapp") || "").trim();
   const email = String(formData.get("email") || "").trim();
   const addressLine1 = String(formData.get("address_line1") || "").trim();
   const addressLine2 = String(formData.get("address_line2") || "").trim();
@@ -36,8 +37,11 @@ export async function createOrder(
     return { error: "Please fill in all required fields." };
   }
 
-  // WhatsApp number is mandatory and must be a valid Indian mobile number
+  // Phone and WhatsApp numbers are both mandatory valid Indian mobile numbers
   if (!normalizePhone(customerPhone)) {
+    return { error: "Enter a valid 10-digit phone number." };
+  }
+  if (!normalizePhone(customerWhatsapp)) {
     return { error: "Enter a valid 10-digit WhatsApp number." };
   }
 
@@ -134,6 +138,7 @@ export async function createOrder(
     order_token: orderToken,
     customer_name: customerName,
     customer_phone: customerPhone,
+    customer_whatsapp: customerWhatsapp,
     email: email || null,
     address_line1: addressLine1,
     address_line2: addressLine2 || null,
@@ -150,7 +155,23 @@ export async function createOrder(
     order_status: "pending",
   };
 
-  const { error: insertError } = await supabase.from("orders").insert(order);
+  // The `customer_whatsapp` column is added by migration 0006. Until that
+  // migration runs on the live DB the insert above fails with a
+  // "could not find the customer_whatsapp column" cache error — fall back
+  // to inserting without it (store keeps working; once the column exists,
+  // WhatsApp is captured on every new order).
+  let orderToInsert: Record<string, unknown> = order;
+  let { error: insertError } = await supabase
+    .from("orders")
+    .insert(orderToInsert);
+
+  if (insertError && /customer_whatsapp/i.test(insertError.message)) {
+    orderToInsert = { ...order };
+    delete orderToInsert.customer_whatsapp;
+    ({ error: insertError } = await supabase
+      .from("orders")
+      .insert(orderToInsert));
+  }
 
   if (insertError) return { error: insertError.message };
 

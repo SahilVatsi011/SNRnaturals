@@ -58,15 +58,15 @@ export function AddToCartButton({
     lg: "px-6 py-3 text-base gap-2",
   };
 
-  const base = `inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 active:scale-95 ${sizes[size]}`;
+  const base = `inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 ${sizes[size]}`;
 
   const variants = {
     primary: added
-      ? "bg-brand-600 text-white shadow-lg shadow-brand-600/25"
-      : "bg-brand-600 text-white shadow-md shadow-brand-600/20 hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-600/30",
+      ? "bg-brand-600 text-white"
+      : "bg-brand-600 text-white hover:bg-brand-700",
     secondary: added
       ? "bg-brand-50 text-brand-700 border border-brand-200"
-      : "bg-white text-brand-700 border border-stone-200 hover:border-brand-300 hover:bg-brand-50",
+      : "bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50",
   };
 
   return (
@@ -77,14 +77,14 @@ export function AddToCartButton({
     >
       {added ? (
         <>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="animate-bounce-in">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
           Added!
         </>
       ) : (
         <>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
           Add to Cart

@@ -43,15 +43,15 @@ export default async function TrackPage({
   const isCancelled = order.order_status === "cancelled";
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
       {isCancelled ? (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+        <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           This order was cancelled.
         </div>
       ) : (
-        <div className="mb-6">
-          <p className="text-sm text-stone-500">Order status</p>
-          <h1 className="text-2xl font-bold text-stone-800">
+        <div className="mb-5">
+          <p className="text-sm text-gray-500">Order status</p>
+          <h1 className="text-xl font-bold text-gray-900">
             Order {formatOrderNo(order.order_no)}
           </h1>
           {/* Progress steps */}
@@ -61,22 +61,28 @@ export default async function TrackPage({
                 <div key={s} className="flex flex-1 items-center last:flex-none">
                   <div className="flex flex-col items-center">
                     <div
-                      className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                      className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
                         i < step
                           ? "bg-brand-600 text-white"
-                          : "bg-stone-200 text-stone-400"
+                          : "bg-gray-200 text-gray-400"
                       }`}
                     >
-                      {i < step ? "✓" : i + 1}
+                      {i < step ? (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        i + 1
+                      )}
                     </div>
-                    <span className="mt-1 text-xs capitalize text-stone-500">
+                    <span className="mt-1 text-[10px] capitalize text-gray-500 sm:text-xs">
                       {s}
                     </span>
                   </div>
                   {i < 3 && (
                     <div
-                      className={`h-1 flex-1 mx-1 ${
-                        i < step - 1 ? "bg-brand-600" : "bg-stone-200"
+                      className={`h-0.5 flex-1 mx-1 ${
+                        i < step - 1 ? "bg-brand-600" : "bg-gray-200"
                       }`}
                     />
                   )}
@@ -87,27 +93,27 @@ export default async function TrackPage({
         </div>
       )}
 
-      <div className="rounded-lg border border-stone-200 bg-white p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-semibold text-stone-800">Items</h2>
+      <div className="rounded-lg border border-gray-200 bg-white p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-800">Items</h2>
           <ReorderButton items={items} />
         </div>
         <table className="w-full text-sm">
           <tbody>
             {items.map((item, i) => (
-              <tr key={i} className="border-b border-stone-100 last:border-0">
-                <td className="py-2 text-stone-700">{item.name}</td>
-                <td className="py-2 text-center">{item.qty}</td>
-                <td className="py-2 text-right">
+              <tr key={i} className="border-b border-gray-100 last:border-0">
+                <td className="py-2 text-gray-700">{item.name}</td>
+                <td className="py-2 text-center text-gray-500">{item.qty}</td>
+                <td className="py-2 text-right font-medium">
                   {price(Number(item.price) * Number(item.qty))}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div className="mt-3 space-y-1 border-t border-stone-200 pt-3 text-sm">
+        <div className="mt-3 space-y-1 border-t border-gray-200 pt-3 text-sm">
           <div className="flex justify-between">
-            <span className="text-stone-500">Subtotal</span>
+            <span className="text-gray-500">Subtotal</span>
             <span>{price(Number(order.subtotal))}</span>
           </div>
           {Number(order.discount_amount) > 0 && (
@@ -117,7 +123,7 @@ export default async function TrackPage({
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-stone-500">Delivery</span>
+            <span className="text-gray-500">Delivery</span>
             <span>{price(Number(order.delivery_fee))}</span>
           </div>
           <div className="flex justify-between text-base font-bold">
@@ -128,32 +134,26 @@ export default async function TrackPage({
       </div>
 
       {order.courier_name && (
-        <div className="mt-4 rounded-lg border border-stone-200 bg-white p-5 text-sm">
-          <h3 className="mb-1 font-semibold text-stone-800">Dispatch details</h3>
-          <p>
+        <div className="mt-3 rounded-lg border border-gray-200 bg-white p-4 text-sm">
+          <h3 className="mb-1 font-semibold text-gray-800">Dispatch details</h3>
+          <p className="text-gray-600">
             Courier: {order.courier_name}
             {order.tracking_id ? ` / ${order.tracking_id}` : ""}
           </p>
         </div>
       )}
 
-      <div className="mt-6 text-center text-sm text-stone-500">
-        <StatusBadgeLegacy status={order.order_status} />
-        <p className="mt-2 text-xs">
+      <div className="mt-5 text-center text-sm text-gray-500">
+        <span className="inline-block">
+          Status: <OrderStatusBadge status={order.order_status} />
+        </span>
+        <p className="mt-2 text-xs text-gray-400">
           Questions? Contact us at {STORE.phone || STORE.domain}
         </p>
-        <Link href="/" className="mt-2 inline-block text-brand-600 hover:underline">
+        <Link href="/" className="mt-2 inline-block text-sm font-medium text-brand-600 hover:text-brand-700">
           Continue shopping
         </Link>
       </div>
     </div>
-  );
-}
-
-function StatusBadgeLegacy({ status }: { status: string }) {
-  return (
-    <span className="inline-block">
-      Status: <OrderStatusBadge status={status} />
-    </span>
   );
 }

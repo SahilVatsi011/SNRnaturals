@@ -49,7 +49,7 @@ export function ReorderButton({ items }: { items: OrderItem[] }) {
     <button
       type="button"
       onClick={reorder}
-      className="rounded-md border border-brand-600 px-3 py-1.5 text-sm font-medium text-brand-700 hover:bg-brand-50"
+      className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
     >
       Reorder
     </button>

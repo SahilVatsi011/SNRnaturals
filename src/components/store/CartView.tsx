@@ -55,23 +55,23 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 lg:px-8">
-        <div className="mx-auto w-fit rounded-full bg-stone-100 p-6">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.2} className="text-stone-400">
+        <div className="mx-auto w-fit rounded-full bg-gray-100 p-5">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.2} className="text-gray-400">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
         </div>
-        <h1 className="mt-5 font-display text-2xl font-bold text-stone-800">
+        <h1 className="mt-4 text-xl font-bold text-gray-800">
           Your cart is empty
         </h1>
-        <p className="mt-2 text-stone-500">
+        <p className="mt-1 text-sm text-gray-500">
           Looks like you haven&apos;t added anything yet.
         </p>
         <Link
           href="/"
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-3 font-semibold text-white shadow-md shadow-brand-600/20 transition-all hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg"
+          className="mt-5 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
         >
           Start Shopping
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </Link>
@@ -82,18 +82,18 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-stone-800 sm:text-3xl">
+          <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
             Shopping Cart
           </h1>
-          <p className="mt-1 text-sm text-stone-400">
+          <p className="mt-0.5 text-sm text-gray-400">
             {count} {count === 1 ? "item" : "items"} in your cart
           </p>
         </div>
         <Link
           href="/"
-          className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700 sm:flex"
+          className="hidden items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700 sm:flex"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
@@ -105,25 +105,24 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Cart items */}
         <div className="space-y-3 lg:col-span-2">
-          {items.map((item, i) => (
+          {items.map((item) => (
             <div
               key={item.product_id}
-              className="animate-fade-in flex gap-4 rounded-2xl border border-stone-100 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:p-5"
-              style={{ animationDelay: `${i * 60}ms`, opacity: 0 }}
+              className="flex gap-4 rounded-lg border border-gray-200 bg-white p-4 sm:p-5"
             >
               {/* Image */}
               {item.image ? (
-                <Link href={`/products/${item.slug}`} className="img-zoom shrink-0">
+                <Link href={`/products/${item.slug}`} className="shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="h-24 w-24 rounded-xl object-cover sm:h-28 sm:w-28"
+                    className="h-24 w-24 rounded-lg object-cover sm:h-28 sm:w-28"
                   />
                 </Link>
               ) : (
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-stone-50 sm:h-28 sm:w-28">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1} className="text-stone-300">
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-gray-50 sm:h-28 sm:w-28">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1} className="text-gray-300">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
@@ -134,13 +133,13 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
                 <div className="flex items-start justify-between gap-3">
                   <Link
                     href={`/products/${item.slug}`}
-                    className="line-clamp-2 font-semibold text-stone-800 transition-colors hover:text-brand-700"
+                    className="line-clamp-2 text-sm font-medium text-gray-800 transition-colors hover:text-brand-700"
                   >
                     {item.name}
                   </Link>
                   <button
                     onClick={() => remove(item.product_id)}
-                    className="shrink-0 rounded-lg p-1.5 text-stone-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                    className="shrink-0 rounded-md p-1.5 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500"
                     aria-label="Remove item"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -149,7 +148,7 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
                   </button>
                 </div>
 
-                <div className="mt-1 text-sm text-stone-400">
+                <div className="mt-1 text-sm text-gray-400">
                   {price(item.price)} each
                   {item.weight_grams > 0 && (
                     <span className="ml-2">
@@ -160,21 +159,21 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
 
                 <div className="mt-auto flex items-center justify-between pt-3">
                   {/* Quantity controls */}
-                  <div className="flex items-center overflow-hidden rounded-xl border border-stone-200">
+                  <div className="flex items-center overflow-hidden rounded border border-gray-200">
                     <button
                       onClick={() => changeQty(item.product_id, -1)}
-                      className="flex h-9 w-9 items-center justify-center text-stone-500 transition-colors hover:bg-stone-50 active:bg-stone-100"
+                      className="flex h-8 w-8 items-center justify-center text-gray-500 transition-colors hover:bg-gray-50"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" d="M5 12h14" />
                       </svg>
                     </button>
-                    <span className="flex h-9 w-10 items-center justify-center border-x border-stone-200 text-sm font-semibold text-stone-800">
+                    <span className="flex h-8 w-9 items-center justify-center border-x border-gray-200 text-sm font-medium text-gray-800">
                       {item.qty}
                     </span>
                     <button
                       onClick={() => changeQty(item.product_id, 1)}
-                      className="flex h-9 w-9 items-center justify-center text-stone-500 transition-colors hover:bg-stone-50 active:bg-stone-100"
+                      className="flex h-8 w-8 items-center justify-center text-gray-500 transition-colors hover:bg-gray-50"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" d="M12 5v14m7-7H5" />
@@ -183,7 +182,7 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
                   </div>
 
                   {/* Item total */}
-                  <span className="text-lg font-bold text-stone-800">
+                  <span className="text-base font-bold text-gray-800">
                     {price(item.price * item.qty)}
                   </span>
                 </div>
@@ -194,21 +193,21 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
 
         {/* Order Summary */}
         <div>
-          <div className="sticky top-28 rounded-2xl border border-stone-100 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-stone-800">Order Summary</h2>
+          <div className="sticky top-24 rounded-lg border border-gray-200 bg-white p-5">
+            <h2 className="text-base font-bold text-gray-800">Order Summary</h2>
 
-            <div className="mt-5 space-y-3 text-sm">
+            <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-stone-500">Subtotal ({count} items)</span>
-                <span className="font-medium text-stone-700">{price(subtotal)}</span>
+                <span className="text-gray-500">Subtotal ({count} items)</span>
+                <span className="font-medium text-gray-700">{price(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-500">Delivery</span>
-                <span className="font-medium text-stone-700">
+                <span className="text-gray-500">Delivery</span>
+                <span className="font-medium text-gray-700">
                   {deliveryFee > 0 ? price(deliveryFee) : "Free"}
                 </span>
               </div>
-              <div className="flex justify-between text-xs text-stone-400">
+              <div className="flex justify-between text-xs text-gray-400">
                 <span>Total weight</span>
                 <span>
                   {weight >= 1000
@@ -218,26 +217,26 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
               </div>
             </div>
 
-            <div className="my-4 border-t border-dashed border-stone-200" />
+            <div className="my-4 border-t border-dashed border-gray-200" />
 
-            <div className="flex justify-between text-lg">
-              <span className="font-bold text-stone-800">Total</span>
+            <div className="flex justify-between text-base">
+              <span className="font-bold text-gray-800">Total</span>
               <span className="font-bold text-brand-700">{price(total)}</span>
             </div>
 
             <Link
               href="/checkout"
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 py-3.5 font-semibold text-white shadow-md shadow-brand-600/20 transition-all hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
             >
               Proceed to Checkout
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </Link>
 
             {/* Trust */}
-            <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-stone-400">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-400">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               Secure checkout &middot; UPI, Cards, Netbanking
@@ -245,7 +244,7 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
 
             <Link
               href="/"
-              className="mt-3 block text-center text-sm font-medium text-stone-400 transition-colors hover:text-brand-600"
+              className="mt-2 block text-center text-sm font-medium text-gray-400 transition-colors hover:text-brand-600"
             >
               Continue shopping
             </Link>

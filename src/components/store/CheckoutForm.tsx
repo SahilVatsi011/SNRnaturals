@@ -37,6 +37,10 @@ export function CheckoutForm({
   const [items, setItems] = useState<CartItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [whatsappError, setWhatsappError] = useState<string | null>(null);
+  const [phoneValue, setPhoneValue] = useState("");
+  const [whatsappValue, setWhatsappValue] = useState("");
+  const [whatsappSame, setWhatsappSame] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   // Coupon state
@@ -97,14 +101,26 @@ export function CheckoutForm({
       fd.set("coupon_code", appliedCoupon.code);
     }
 
-    // WhatsApp number is mandatory and must be a valid Indian mobile number
-    const customerPhone = String(fd.get("customer_phone") || "").trim();
-    if (!customerPhone || !normalizePhone(customerPhone)) {
-      setPhoneError("Enter a valid 10-digit WhatsApp number (e.g. 9876543210).");
+    // Phone number is mandatory and must be a valid Indian mobile number
+    const phone = phoneValue.trim();
+    if (!phone || !normalizePhone(phone)) {
+      setPhoneError("Enter a valid 10-digit phone number (e.g. 9876543210).");
       setSubmitting(false);
       return;
     }
     setPhoneError(null);
+
+    // WhatsApp number is mandatory too, auto-filled from phone when "same"
+    const whatsapp = whatsappSame ? phone : whatsappValue.trim();
+    if (!whatsapp || !normalizePhone(whatsapp)) {
+      setWhatsappError("Enter a valid 10-digit WhatsApp number.");
+      setSubmitting(false);
+      return;
+    }
+    setWhatsappError(null);
+
+    fd.set("customer_phone", phone);
+    fd.set("customer_whatsapp", whatsapp);
 
     const result = await createOrder(fd);
     if (result.error) {
@@ -181,7 +197,7 @@ export function CheckoutForm({
                 <input id="customer_name" name="customer_name" required autoComplete="name" className={inputClass} />
               </div>
               <div>
-                <label htmlFor="customer_phone" className="mb-1 block text-sm font-medium text-gray-700">WhatsApp Number *</label>
+                <label htmlFor="customer_phone" className="mb-1 block text-sm font-medium text-gray-700">Phone Number *</label>
                 <input
                   id="customer_phone"
                   name="customer_phone"
@@ -190,13 +206,50 @@ export function CheckoutForm({
                   autoComplete="tel"
                   inputMode="tel"
                   maxLength={15}
+                  value={phoneValue}
+                  onChange={(e) => { setPhoneValue(e.target.value); setPhoneError(null); }}
                   placeholder="10-digit mobile e.g. 9876543210"
                   className={`${inputClass} ${phoneError ? "border-red-400" : ""}`}
-                  onChange={() => setPhoneError(null)}
                 />
                 {phoneError && (
                   <p className="mt-1 text-xs text-red-600">{phoneError}</p>
                 )}
+              </div>
+              <div>
+                <label htmlFor="customer_whatsapp" className="mb-1 block text-sm font-medium text-gray-700">WhatsApp Number *</label>
+                <input
+                  id="customer_whatsapp"
+                  name="customer_whatsapp"
+                  required
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  maxLength={15}
+                  value={whatsappSame ? phoneValue : whatsappValue}
+                  onChange={(e) => { setWhatsappValue(e.target.value); setWhatsappError(null); }}
+                  disabled={whatsappSame}
+                  placeholder="10-digit mobile"
+                  className={`${inputClass} ${whatsappSame ? "bg-gray-50 text-gray-500" : ""} ${whatsappError ? "border-red-400" : ""}`}
+                />
+                <label className="mt-1.5 flex cursor-pointer items-center gap-1.5 text-xs text-gray-500">
+                  <input
+                    type="checkbox"
+                    checked={whatsappSame}
+                    onChange={(e) => { setWhatsappSame(e.target.checked); setWhatsappError(null); }}
+                    className="h-3.5 w-3.5 rounded border-gray-300 accent-brand-600"
+                  />
+                  Same as phone number
+                </label>
+                {whatsappError && (
+                  <p className="mt-1 text-xs text-red-600">{whatsappError}</p>
+                )}
+                <div className="mt-1 flex items-start gap-1.5 text-xs text-gray-400">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="mt-px shrink-0">
+                    <circle cx="12" cy="12" r="10" />
+                    <path strokeLinecap="round" d="M12 16v-5M12 8h.01" />
+                  </svg>
+                  <span>You will receive your order details on WhatsApp, so add carefully.</span>
+                </div>
               </div>
               <div className="sm:col-span-2">
                 <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">Email <span className="text-gray-400">(optional)</span></label>

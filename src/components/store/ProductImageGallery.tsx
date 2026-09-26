@@ -14,7 +14,7 @@ export function ProductImageGallery({
 
   if (!hasImages) {
     return (
-      <div className="flex aspect-square w-full items-center justify-center rounded-2xl bg-gradient-to-br from-stone-50 to-stone-100">
+      <div className="flex aspect-square w-full items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
         <svg
           width="80"
           height="80"
@@ -22,7 +22,7 @@ export function ProductImageGallery({
           fill="none"
           stroke="currentColor"
           strokeWidth={0.8}
-          className="text-stone-300"
+          className="text-gray-300"
         >
           <path
             strokeLinecap="round"
@@ -37,7 +37,7 @@ export function ProductImageGallery({
   return (
     <div className="space-y-3">
       {/* Main image */}
-      <div className="relative overflow-hidden rounded-2xl bg-stone-50">
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={images[selected]}
@@ -53,10 +53,10 @@ export function ProductImageGallery({
             <button
               key={i}
               onClick={() => setSelected(i)}
-              className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-xl transition-all sm:h-20 sm:w-20 ${
+              className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-md transition-all sm:h-20 sm:w-20 ${
                 i === selected
-                  ? "ring-2 ring-brand-500 ring-offset-2"
-                  : "opacity-60 hover:opacity-100"
+                  ? "border-2 border-brand-600"
+                  : "border border-gray-200 opacity-60 hover:opacity-100"
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

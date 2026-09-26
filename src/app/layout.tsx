@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-[#fafaf8] text-stone-900">{children}</body>
+      <body className="bg-white text-gray-900">{children}</body>
     </html>
   );
 }

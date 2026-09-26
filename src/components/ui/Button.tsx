@@ -4,11 +4,11 @@ type Variant = "primary" | "secondary" | "danger" | "ghost";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-brand-600 hover:bg-brand-700 text-white disabled:bg-brand-300",
+    "bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white disabled:bg-brand-300",
   secondary:
-    "bg-white hover:bg-stone-50 text-stone-700 border border-stone-300",
+    "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300",
   danger: "bg-red-600 hover:bg-red-700 text-white disabled:bg-red-300",
-  ghost: "bg-transparent hover:bg-stone-100 text-stone-600",
+  ghost: "bg-transparent hover:bg-gray-100 text-gray-600",
 };
 
 const sizes: Record<"sm" | "md" | "lg", string> = {
@@ -30,7 +30,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     />
   );

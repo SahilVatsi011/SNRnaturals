@@ -18,6 +18,8 @@ function formatDate(d: string) {
   });
 }
 
+const inputClass = "w-full rounded-lg border border-gray-300 bg-white py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500";
+
 export default async function OrderHistoryPage({
   searchParams,
 }: {
@@ -52,31 +54,25 @@ export default async function OrderHistoryPage({
     }
   }
 
-  // Show error if only one field was provided
   const partialSearch = (!!trimmedPhone !== !!trimmedOrderId) && (!!trimmedPhone || !!trimmedOrderId);
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12 lg:px-8">
       {/* Header */}
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="text-brand-600">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-        </div>
-        <h1 className="font-display text-2xl font-bold text-stone-800 sm:text-3xl">Track Your Order</h1>
-        <p className="mt-2 text-sm text-stone-500">
+      <div className="mb-6 text-center">
+        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Track Your Order</h1>
+        <p className="mt-1 text-sm text-gray-500">
           Enter your phone number and order ID to view your order details.
         </p>
       </div>
 
-      {/* Search form — both fields required */}
-      <div className="mx-auto mb-10 max-w-md">
-        <form action="/order-history" method="GET" className="space-y-4">
+      {/* Search form */}
+      <div className="mx-auto mb-8 max-w-md">
+        <form action="/order-history" method="GET" className="space-y-3">
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-stone-400">Phone Number</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Phone Number</label>
             <div className="relative">
-              <svg className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
               <input
@@ -85,31 +81,28 @@ export default async function OrderHistoryPage({
                 defaultValue={trimmedPhone}
                 placeholder="Enter your 10-digit phone number"
                 required
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50/50 py-3.5 pl-11 pr-4 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10"
+                className={`${inputClass} pl-10 pr-4`}
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-stone-400">Order ID</label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-stone-400">SNR-</span>
-              <input
-                name="order_id"
-                type="text"
-                inputMode="numeric"
-                defaultValue={trimmedOrderId}
-                placeholder="e.g. SNR-10001"
-                required
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50/50 py-3.5 pl-14 pr-4 text-sm transition-all focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10"
-              />
-            </div>
-            <p className="mt-1 text-xs text-stone-400">
+            <label className="mb-1 block text-sm font-medium text-gray-700">Order ID</label>
+            <input
+              name="order_id"
+              type="text"
+              inputMode="numeric"
+              defaultValue={trimmedOrderId}
+              placeholder="e.g. SNR-10001"
+              required
+              className={`${inputClass} px-4`}
+            />
+            <p className="mt-1 text-xs text-gray-400">
               You can find this in your WhatsApp order confirmation message.
             </p>
           </div>
 
-          <button type="submit" className="w-full rounded-2xl bg-brand-600 px-5 py-3.5 text-sm font-semibold text-white shadow-md shadow-brand-600/20 transition-all hover:-translate-y-0.5 hover:bg-brand-700">
+          <button type="submit" className="w-full rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700">
             Find My Order
           </button>
         </form>
@@ -117,8 +110,8 @@ export default async function OrderHistoryPage({
 
       {/* Partial search warning */}
       {partialSearch && (
-        <div className="rounded-3xl border-2 border-dashed border-amber-200 bg-amber-50 p-8 text-center">
-          <h2 className="text-lg font-semibold text-amber-700">Both fields required</h2>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-center">
+          <h2 className="text-sm font-semibold text-amber-700">Both fields required</h2>
           <p className="mt-1 text-sm text-amber-600">
             Please enter both your phone number and order ID to find your order.
           </p>
@@ -127,34 +120,34 @@ export default async function OrderHistoryPage({
 
       {/* Error */}
       {errorMsg && searched && (
-        <div className="rounded-3xl border-2 border-dashed border-stone-200 bg-white p-12 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="text-red-400">
+        <div className="rounded-lg border border-gray-200 bg-white p-10 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="text-red-400">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h2 className="text-lg font-semibold text-stone-700">Order not found</h2>
-          <p className="mt-1 text-sm text-stone-400">{errorMsg}</p>
+          <h2 className="text-base font-semibold text-gray-700">Order not found</h2>
+          <p className="mt-1 text-sm text-gray-400">{errorMsg}</p>
         </div>
       )}
 
       {/* Order found */}
       {order && (
-        <div className="animate-fade-in rounded-2xl border border-stone-100 bg-white p-5 shadow-sm sm:p-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-3">
-                <h3 className="text-lg font-bold text-stone-800">Order {formatOrderNo(order.order_no)}</h3>
+                <h3 className="text-base font-bold text-gray-800">Order {formatOrderNo(order.order_no)}</h3>
                 <OrderStatusBadge status={order.order_status} />
               </div>
-              <p className="mt-0.5 text-xs text-stone-400">{formatDate(order.created_at)}</p>
+              <p className="mt-0.5 text-xs text-gray-400">{formatDate(order.created_at)}</p>
             </div>
             <div className="text-right">
-              <p className="text-lg font-bold text-stone-800">{price(Number(order.total))}</p>
+              <p className="text-base font-bold text-gray-800">{price(Number(order.total))}</p>
               {(() => {
                 const itemList = Array.isArray(order.items) ? order.items : [];
                 const itemCount = itemList.reduce((s: number, it: { qty?: number }) => s + (it.qty || 1), 0);
-                return <p className="text-xs text-stone-400">{itemCount} item{itemCount === 1 ? "" : "s"}</p>;
+                return <p className="text-xs text-gray-400">{itemCount} item{itemCount === 1 ? "" : "s"}</p>;
               })()}
             </div>
           </div>
@@ -162,13 +155,13 @@ export default async function OrderHistoryPage({
           {(() => {
             const itemList = Array.isArray(order.items) ? order.items : [];
             return (
-              <p className="mt-3 text-sm text-stone-500">
+              <p className="mt-2 text-sm text-gray-500">
                 {itemList.map((it: { name?: string }) => it.name).filter(Boolean).join(", ")}
               </p>
             );
           })()}
 
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-2 flex items-center gap-2">
             <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
               order.payment_status === "paid"
                 ? "bg-green-50 text-green-700"
@@ -183,10 +176,10 @@ export default async function OrderHistoryPage({
             </span>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-stone-100 pt-4">
+          <div className="mt-3 flex flex-wrap gap-2 border-t border-gray-100 pt-3">
             <Link
               href={`/track/${order.order_token}`}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-100"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -200,14 +193,14 @@ export default async function OrderHistoryPage({
 
       {/* Not searched yet */}
       {!searched && !partialSearch && (
-        <div className="rounded-3xl border border-stone-100 bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-50">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.2} className="text-stone-400">
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-50">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.2} className="text-gray-400">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h3 className="mt-4 text-lg font-semibold text-stone-700">Find your order</h3>
-          <p className="mt-1 text-sm text-stone-400">
+          <h3 className="mt-3 text-base font-semibold text-gray-700">Find your order</h3>
+          <p className="mt-1 text-sm text-gray-400">
             Enter your phone number and order ID (from your WhatsApp confirmation) to track your order. No login needed!
           </p>
         </div>

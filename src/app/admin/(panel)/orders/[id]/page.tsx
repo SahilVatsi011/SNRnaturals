@@ -65,9 +65,10 @@ export default async function OrderDetailPage({
   const items: OrderItem[] = Array.isArray(order.items) ? order.items : [];
   const trackingUrl = `${STORE.appUrl}/track/${order.order_token}`;
   const paymentPaid = order.payment_status === "paid";
+  const whatsappNumber = order.customer_whatsapp || order.customer_phone;
 
   const whatsappReceivedLink = buildWhatsAppOrderReceivedLink({
-    phone: order.customer_phone,
+    phone: whatsappNumber,
     customerName: order.customer_name,
     orderNo: order.order_no,
     total: Number(order.total),
@@ -75,7 +76,7 @@ export default async function OrderDetailPage({
   });
 
   const whatsappDispatchLink = buildWhatsAppDispatchLink({
-    phone: order.customer_phone,
+    phone: whatsappNumber,
     customerName: order.customer_name,
     orderNo: order.order_no,
     courierName: order.courier_name,
@@ -85,7 +86,7 @@ export default async function OrderDetailPage({
   });
 
   const whatsappDeliveredLink = buildWhatsAppDeliveredLink({
-    phone: order.customer_phone,
+    phone: whatsappNumber,
     customerName: order.customer_name,
     orderNo: order.order_no,
     trackingUrl,
@@ -241,6 +242,12 @@ export default async function OrderDetailPage({
                 <dt className="text-stone-500">Phone</dt>
                 <dd className="font-medium text-stone-800">
                   {order.customer_phone}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-stone-500">WhatsApp</dt>
+                <dd className="font-medium text-stone-800">
+                  {order.customer_whatsapp || "—"}
                 </dd>
               </div>
               {order.email && (
