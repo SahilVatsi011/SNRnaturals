@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { StoreHeader } from "@/components/store/StoreHeader";
 import { STORE } from "@/lib/constants";
+import { business } from "@/config/business";
 
 export default function StoreLayout({
   children,
@@ -15,7 +16,7 @@ export default function StoreLayout({
       {/* ━━━ Footer ━━━ */}
       <footer className="border-t border-gray-200 bg-gray-50 text-gray-600">
         <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-8">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
             {/* Brand */}
             <div className="sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2">
@@ -25,12 +26,22 @@ export default function StoreLayout({
                 <span className="text-base font-bold text-gray-900">{STORE.name}</span>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-gray-500">
-                Bringing you the finest natural products from the Himalayan
-                valleys of Sundernagar, Mandi district.
+                {business.legalName}
+              </p>
+              <p className="mt-1 text-xs text-gray-400">
+                {STORE.city}, {STORE.state}
+              </p>
+              {STORE.phone && (
+                <p className="mt-1 text-xs text-gray-400">
+                  <a href={`tel:${STORE.phone}`} className="hover:text-gray-600">{STORE.phone}</a>
+                </p>
+              )}
+              <p className="mt-0.5 text-xs text-gray-400">
+                <a href={`mailto:${business.contact.email}`} className="hover:text-gray-600">{business.contact.email}</a>
               </p>
             </div>
 
-            {/* Links */}
+            {/* Quick Links */}
             <div>
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
                 Quick Links
@@ -40,6 +51,30 @@ export default function StoreLayout({
                   { href: "/", label: "Shop All" },
                   { href: "/cart", label: "Cart" },
                   { href: "/order-history", label: "Track Order" },
+                ].map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="transition-colors hover:text-gray-900">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Policies */}
+            <div>
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Policies
+              </h3>
+              <ul className="space-y-2 text-sm">
+                {[
+                  { href: "/about", label: "About Us" },
+                  { href: "/contact", label: "Contact Us" },
+                  { href: "/pricing", label: "Pricing" },
+                  { href: "/terms", label: "Terms & Conditions" },
+                  { href: "/privacy-policy", label: "Privacy Policy" },
+                  { href: "/refund-policy", label: "Cancellation & Refund" },
+                  { href: "/shipping-policy", label: "Shipping Policy" },
                 ].map((link) => (
                   <li key={link.href}>
                     <Link href={link.href} className="transition-colors hover:text-gray-900">

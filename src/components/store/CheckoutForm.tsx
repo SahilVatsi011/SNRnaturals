@@ -421,6 +421,12 @@ export function CheckoutForm({
               </svg>
               Your information is secure
             </div>
+            <p className="mt-2 text-center text-[11px] leading-relaxed text-gray-400">
+              By placing this order you agree to our{" "}
+              <a href="/terms" target="_blank" className="underline underline-offset-2 hover:text-gray-600">Terms</a>,{" "}
+              <a href="/refund-policy" target="_blank" className="underline underline-offset-2 hover:text-gray-600">Refund Policy</a> and{" "}
+              <a href="/shipping-policy" target="_blank" className="underline underline-offset-2 hover:text-gray-600">Shipping Policy</a>.
+            </p>
           </div>
         </div>
       </form>
