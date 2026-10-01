@@ -1,8 +1,14 @@
 name: Supabase Keep-Alive
 
+# Supabase pauses FREE projects after 7 days without any API activity.
+# This workflow pings the project's REST API on a schedule so the project
+# never counts as inactive. It is the GitHub half of a two-net setup —
+# the other half is a local macOS crontab ping (see docs/operations.md).
+#
+# Every 2 days leaves a comfortable margin under the 7-day limit.
 on:
   schedule:
-    - cron: "0 6 * * 1,3,5"
+    - cron: "0 6 */2 * *"
   workflow_dispatch:
 
 jobs:
