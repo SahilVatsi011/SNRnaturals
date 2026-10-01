@@ -20,10 +20,10 @@ function makeWaLink(phone: string, text: string) {
   return url.toString();
 }
 
-/** Append the "how to track your order" steps + direct link to a message. */
+/** Append the "how to track your order" steps to a message. */
 function appendTrackingSteps(
   lines: string[],
-  o: { orderId: string; phone?: string; trackingUrl?: string }
+  o: { orderId: string; phone?: string }
 ) {
   if (lines[lines.length - 1] !== "") {
     lines.push("");
@@ -42,11 +42,6 @@ function appendTrackingSteps(
     lines.push(`4. Enter Phone Number: ${o.phone}`);
   }
   lines.push("5. Tap Track");
-  if (o.trackingUrl) {
-    lines.push("");
-    lines.push("⚡ For instant status, tap here:");
-    lines.push(o.trackingUrl);
-  }
 }
 
 /** Message sent when a new order is placed (order received confirmation) */
@@ -73,7 +68,7 @@ export function buildWhatsAppOrderReceivedLink(opts: {
   appendTrackingSteps(lines, {
     orderId,
     phone: opts.phone,
-    trackingUrl: opts.trackingUrl,
+
   });
   lines.push("");
   lines.push(`We'll notify you once it's dispatched. 📦`);
@@ -117,7 +112,7 @@ export function buildWhatsAppDispatchLink(opts: {
   appendTrackingSteps(lines, {
     orderId,
     phone: opts.phone,
-    trackingUrl: opts.trackingUrl,
+
   });
   lines.push("");
   lines.push(`Thank you for shopping with ${STORE.name}! 🙏`);
@@ -145,7 +140,7 @@ export function buildWhatsAppDeliveredLink(opts: {
   appendTrackingSteps(lines, {
     orderId,
     phone: opts.phone,
-    trackingUrl: opts.trackingUrl,
+
   });
   lines.push("");
   lines.push("We'd love to hear your feedback — please share a review or rating!");
