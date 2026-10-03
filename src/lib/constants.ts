@@ -5,7 +5,7 @@
 export const STORE = {
   name: process.env.NEXT_PUBLIC_STORE_NAME || "Sundergar Naturals",
   shortName: process.env.NEXT_PUBLIC_STORE_SHORT_NAME || "snrnaturals",
-  domain: process.env.NEXT_PUBLIC_STORE_DOMAIN || "snrnaturalsfpc.com",
+  domain: process.env.NEXT_PUBLIC_STORE_DOMAIN || "snrnaturals.com",
   phone: process.env.NEXT_PUBLIC_STORE_PHONE || "",
   city: "Sundergar",
   district: "Mandi",

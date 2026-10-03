@@ -7,7 +7,7 @@ export const business = {
   legalName: "[LEGAL BUSINESS NAME]",
   ownerName: "[OWNER NAME]",
   gstin: "",
-  websiteUrl: "[https://www.example.com]",
+  websiteUrl: "https://snrnaturals.com",
 
   address: {
     line1: "[SHOP / BUILDING, STREET]",
