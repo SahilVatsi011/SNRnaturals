@@ -1,0 +1,23 @@
+# Files that must never be uploaded to Vercel
+# (client-confidential deliverables + local-only tooling)
+
+# Client deliverable spreadsheets — not part of the website
+SNR Naturals - New Products Sheet.xlsx
+*.xlsx
+
+# Local task notes / internal docs
+POLICY_PAGES_TASK.md
+SNR_Naturals_Store_TechSpec.md
+
+# DB migrations & SQL seeds at the repo ROOT only — the app's own
+# src/lib/supabase/ code must stay (anchored patterns, no bare "supabase/")
+
+/supabase/
+
+# Local keep-alive + migration helpers (run on the Mac only)
+/scripts/
+
+# Build artefacts / editor cruft
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+.DS_Store
