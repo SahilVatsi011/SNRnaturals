@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { STORE } from "@/lib/constants";
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
+  const sp = await searchParams;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-stone-100 px-4">
       <div className="w-full max-w-sm rounded-xl border border-stone-200 bg-white p-8 shadow-sm">
@@ -18,9 +20,10 @@ export default function LoginPage({
           </p>
         </div>
 
-        <SearchParamsError searchParams={searchParams} />
+        <SearchParamsError error={sp.error} />
 
         <form action={login} className="space-y-4">
+          {sp.next ? <input type="hidden" name="next" value={sp.next} /> : null}
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -51,13 +54,7 @@ export default function LoginPage({
     </div>
   );
 }
-
-async function SearchParamsError({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  const { error } = await searchParams;
+async function SearchParamsError({ error }: { error?: string }) {
   if (!error) return null;
   return (
     <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

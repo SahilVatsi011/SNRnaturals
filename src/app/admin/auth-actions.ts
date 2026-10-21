@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function login(formData: FormData) {
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
+  const next = String(formData.get("next") || "");
 
   const supabase = await createClient();
 
@@ -20,7 +21,11 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/admin", "layout");
-  redirect("/admin");
+  // Only internal admin paths — never an absolute URL (open-redirect guard).
+  const target = next.startsWith("/admin") && !next.startsWith("//")
+    ? next
+    : "/admin";
+  redirect(target);
 }
 
 export async function logout() {
