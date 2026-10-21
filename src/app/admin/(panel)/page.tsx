@@ -1,9 +1,19 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { DEFAULTS } from "@/lib/constants";
 import { formatOrderNo } from "@/lib/order-utils";
 import { Card } from "@/components/ui/Card";
 import NotConfiguredBanner from "@/components/admin/NotConfiguredBanner";
+import RevenueSparkline from "@/components/admin/charts/RevenueSparkline";
+import {
+  addDays,
+  istEndOfDay,
+  istStartOfDay,
+  summarize,
+  todayIST,
+  type AnalyticsOrder,
+} from "@/lib/analytics";
 
 export const dynamic = "force-dynamic";
 
@@ -22,19 +32,40 @@ export default async function DashboardPage() {
   }
 
   const supabase = await createClient();
+  const today = todayIST();
+  const windowFrom = addDays(today, -29);
+  const windowStart = istStartOfDay(windowFrom).toISOString();
+  const windowEnd = istEndOfDay(today).toISOString();
 
   const [
-    { data: orders, error: ordersError },
+    { data: recentOrders, error: ordersError },
+    { count: totalOrders },
+    { count: pendingOrders },
     { data: products },
     { data: settings },
+    { data: windowOrders },
   ] = await Promise.all([
-    supabase.from("orders").select("*").order("created_at", { ascending: false }),
-    supabase.from("products").select("*"),
+    supabase
+      .from("orders")
+      .select("id,order_no,customer_name,total,order_status,created_at")
+      .order("created_at", { ascending: false })
+      .limit(6),
+    supabase.from("orders").select("id", { count: "exact", head: true }),
+    supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("order_status", "pending"),
+    supabase.from("products").select("id,name,stock_qty"),
     supabase
       .from("settings")
       .select("*")
       .eq("key", "lowStockThreshold")
       .single(),
+    supabase
+      .from("orders")
+      .select("created_at,total,payment_status,order_status,items,customer_phone")
+      .gte("created_at", windowStart)
+      .lte("created_at", windowEnd),
   ]);
 
   if (ordersError) {
@@ -49,24 +80,21 @@ export default async function DashboardPage() {
   const lowStockThreshold =
     (settings?.value as number) ?? DEFAULTS.lowStockThreshold;
 
-  const paidOrders = (orders ?? []).filter(
-    (o) => o.payment_status === "paid"
+  const windowSummary = summarize(
+    (windowOrders ?? []) as AnalyticsOrder[],
+    { from: windowFrom, to: today }
   );
-  const revenue = paidOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-
-  const byStatus = (orders ?? []).reduce<Record<string, number>>((acc, o) => {
-    acc[o.order_status] = (acc[o.order_status] || 0) + 1;
-    return acc;
-  }, {});
+  const revenue30d = windowSummary.metrics.revenue;
+  const orders30d = windowSummary.metrics.orders;
 
   const lowStock = (products ?? []).filter(
     (p) => p.stock_qty <= lowStockThreshold
   );
 
   const stats = [
-    { label: "Total Orders", value: String((orders ?? []).length) },
-    { label: "Paid Revenue", value: currency(revenue) },
-    { label: "Pending Orders", value: String(byStatus["pending"] || 0) },
+    { label: "Total Orders", value: String(totalOrders ?? 0) },
+    { label: "Revenue (30 days)", value: currency(revenue30d) },
+    { label: "Pending Orders", value: String(pendingOrders ?? 0) },
     { label: "Low Stock Items", value: String(lowStock.length) },
   ];
 
@@ -85,10 +113,37 @@ export default async function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h2 className="mb-3 text-lg font-semibold text-stone-800">
-            Recent Orders
-          </h2>
-          {orders && orders.length > 0 ? (
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold text-stone-800">
+              Revenue — Last 30 Days
+            </h2>
+            <Link
+              href="/admin/analytics"
+              className="text-sm font-medium text-brand-700 hover:underline"
+            >
+              View analytics →
+            </Link>
+          </div>
+          <p className="mb-2 text-sm text-stone-500">
+            {currency(revenue30d)} from {orders30d} paid order
+            {orders30d === 1 ? "" : "s"}
+          </p>
+          <RevenueSparkline data={windowSummary.daily} />
+        </Card>
+
+        <Card>
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <h2 className="text-lg font-semibold text-stone-800">
+              Recent Orders
+            </h2>
+            <Link
+              href="/admin/orders"
+              className="text-sm font-medium text-brand-700 hover:underline"
+            >
+              View all →
+            </Link>
+          </div>
+          {recentOrders && recentOrders.length > 0 ? (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-stone-200 text-left text-stone-500">
@@ -99,7 +154,7 @@ export default async function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {orders.slice(0, 6).map((o) => (
+                {recentOrders.map((o) => (
                   <tr key={o.id} className="border-b border-stone-100">
                     <td className="py-2">
                       <div>{formatOrderNo(o.order_no)}</div>

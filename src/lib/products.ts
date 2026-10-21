@@ -22,16 +22,26 @@ export const PRODUCT_FIELDS =
   "id,name,slug,description,mrp,price,weight_grams,length_cm,width_cm,height_cm,stock_qty,category,images,active";
 
 export async function getActiveProducts(): Promise<Product[]> {
-  if (!isSupabaseConfigured()) return [];
+  if (!isSupabaseConfigured()) {
+    console.error(
+      "[products] Supabase is not configured — returning an empty catalogue. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
+    );
+    return [];
+  }
   try {
     const supabase = await createClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("products")
       .select(PRODUCT_FIELDS)
       .eq("active", true)
       .order("name");
+    if (error) {
+      console.error("[products] failed to load products:", error.message);
+      return [];
+    }
     return (data ?? []) as Product[];
-  } catch {
+  } catch (err) {
+    console.error("[products] failed to load products:", err);
     return [];
   }
 }
