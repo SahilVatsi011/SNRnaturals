@@ -2,12 +2,13 @@
 # (client-confidential deliverables + local-only tooling)
 
 # Client deliverable spreadsheets — not part of the website
-SNR Naturals - New Products Sheet.xlsx
+/private/
 *.xlsx
 
-# Local task notes / internal docs
-POLICY_PAGES_TASK.md
-SNR_Naturals_Store_TechSpec.md
+# Internal docs and design source files
+/docs/
+/assets/
+README.md
 
 # DB migrations & SQL seeds at the repo ROOT only — the app's own
 # src/lib/supabase/ code must stay (anchored patterns, no bare "supabase/")
