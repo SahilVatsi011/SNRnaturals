@@ -5,17 +5,12 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { STORE } from "@/lib/constants";
 import { formatOrderNo } from "@/lib/order-utils";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import { OrderProgress, orderStatusMessage } from "@/components/store/OrderProgress";
 import { ReorderButton } from "@/components/store/ReorderButton";
 import { formatINRExact } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-const progress: Record<string, number> = {
-  pending: 1,
-  processing: 2,
-  shipped: 3,
-  delivered: 4,
-};
 
 export default async function TrackPage({
   params,
@@ -36,7 +31,6 @@ export default async function TrackPage({
 
   const items: { name?: string; price?: number; qty?: number }[] =
     Array.isArray(order.items) ? order.items : [];
-  const step = progress[order.order_status] ?? 1;
   const isCancelled = order.order_status === "cancelled";
 
   return (
@@ -51,41 +45,9 @@ export default async function TrackPage({
           <h1 className="text-xl font-bold text-gray-900">
             Order {formatOrderNo(order.order_no)}
           </h1>
-          {/* Progress steps */}
-          <div className="mt-4 flex items-center">
-            {["pending", "processing", "shipped", "delivered"].map(
-              (s, i) => (
-                <div key={s} className="flex flex-1 items-center last:flex-none">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-                        i < step
-                          ? "bg-brand-600 text-white"
-                          : "bg-gray-200 text-gray-400"
-                      }`}
-                    >
-                      {i < step ? (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        i + 1
-                      )}
-                    </div>
-                    <span className="mt-1 text-[10px] capitalize text-gray-500 sm:text-xs">
-                      {s}
-                    </span>
-                  </div>
-                  {i < 3 && (
-                    <div
-                      className={`h-0.5 flex-1 mx-1 ${
-                        i < step - 1 ? "bg-brand-600" : "bg-gray-200"
-                      }`}
-                    />
-                  )}
-                </div>
-              )
-            )}
+          <div className="mt-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
+            <OrderProgress status={order.order_status} />
+            <p className="mt-4 text-center text-sm text-gray-600">{orderStatusMessage(order.order_status)}</p>
           </div>
         </div>
       )}

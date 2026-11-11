@@ -13,7 +13,15 @@ interface OrderItem {
   image?: string | null;
 }
 
-export function ReorderButton({ items }: { items: OrderItem[] }) {
+export function ReorderButton({
+  items,
+  className = "rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50",
+  label = "Reorder",
+}: {
+  items: OrderItem[];
+  className?: string;
+  label?: string;
+}) {
   const router = useRouter();
 
   function reorder() {
@@ -49,9 +57,9 @@ export function ReorderButton({ items }: { items: OrderItem[] }) {
     <button
       type="button"
       onClick={reorder}
-      className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+      className={className}
     >
-      Reorder
+      {label}
     </button>
   );
 }
