@@ -52,6 +52,8 @@ export function MobileTabBar() {
   const [count, setCount] = useState(0);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [bump, setBump] = useState(false);
+  // On the homepage: is the shopper looking at the categories / product list?
+  const [inCatalog, setInCatalog] = useState(false);
 
   useEffect(() => {
     let first = true;
@@ -84,9 +86,43 @@ export function MobileTabBar() {
     };
   }, [sheetOpen]);
 
+  // Scroll-spy: "Categories" is active while the category tiles or product
+  // grid fill the middle of the screen (or a ?category= filter is applied);
+  // "Home" is active at the top (hero) and bottom of the homepage.
+  useEffect(() => {
+    if (pathname !== "/") {
+      const id = requestAnimationFrame(() => setInCatalog(false));
+      return () => cancelAnimationFrame(id);
+    }
+    let frame = 0;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const start = document.getElementById("categories") ?? document.getElementById("products");
+        const end = document.getElementById("products");
+        if (!start || !end) return;
+        const mid = window.innerHeight / 2;
+        const inView =
+          start.getBoundingClientRect().top <= mid && end.getBoundingClientRect().bottom >= mid;
+        setInCatalog(inView || new URLSearchParams(window.location.search).has("category"));
+      });
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    window.addEventListener("hashchange", update);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("hashchange", update);
+    };
+  }, [pathname]);
+
+  const onHome = pathname === "/";
   const tabs = [
-    { href: "/", label: "Home", icon: ICONS.home, active: pathname === "/" },
-    { href: "/#categories", label: "Categories", icon: ICONS.grid, active: false },
+    { href: "/", label: "Home", icon: ICONS.home, active: onHome && !inCatalog },
+    { href: "/#categories", label: "Categories", icon: ICONS.grid, active: onHome && inCatalog },
     { href: "/cart", label: "Cart", icon: ICONS.bag, active: pathname.startsWith("/cart") || pathname.startsWith("/checkout"), badge: count },
     { href: "/order-history", label: "Orders", icon: ICONS.box, active: pathname.startsWith("/order-history") || pathname.startsWith("/track") },
   ];
@@ -103,6 +139,10 @@ export function MobileTabBar() {
             <Link
               key={t.label}
               href={t.href}
+              onClick={() => {
+                if (t.label === "Home") setInCatalog(false);
+                if (t.label === "Categories") setInCatalog(true);
+              }}
               className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors ${
                 t.active ? "text-brand-700" : "text-gray-500 active:text-ink"
               }`}
