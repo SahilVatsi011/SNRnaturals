@@ -1,8 +1,122 @@
 import Link from "next/link";
-import { getActiveProducts } from "@/lib/products";
+import { getActiveProducts, type Product } from "@/lib/products";
 import { ProductCard } from "@/components/store/ProductCard";
+import { LogoMark } from "@/components/Logo";
+import { formatINR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
+
+const highlights = [
+  {
+    icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    title: "100% Natural",
+    desc: "No preservatives or artificial colours",
+  },
+  {
+    icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+    title: "Packed with care",
+    desc: "Sealed and packed securely by hand",
+  },
+  {
+    icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z",
+    title: "Secure payments",
+    desc: "UPI, cards & net banking via Razorpay",
+  },
+  {
+    icon: "M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0",
+    title: "Pan-India delivery",
+    desc: "Shipped straight from Sundernagar",
+  },
+];
+
+/** Pick up to `n` products with photos, preferring one per category for variety. */
+const SHOWCASE_ORDER = ["honey", "ghee", "pickle", "juice", "spices", "spice", "sweetener"];
+
+function pickShowcase(products: Product[], n: number): Product[] {
+  const rank = (p: Product) => {
+    const i = SHOWCASE_ORDER.indexOf((p.category ?? "").toLowerCase());
+    return i === -1 ? SHOWCASE_ORDER.length : i;
+  };
+  const withImg = products.filter((p) => p.images?.[0]).sort((x, y) => rank(x) - rank(y));
+  const seen = new Set<string>();
+  const picked: Product[] = [];
+  for (const p of withImg) {
+    const key = (p.category ?? "").toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    picked.push(p);
+    if (picked.length === n) return picked;
+  }
+  for (const p of withImg) {
+    if (picked.length === n) break;
+    if (!picked.includes(p)) picked.push(p);
+  }
+  return picked;
+}
+
+function CollageTile({
+  product,
+  className = "",
+  label = false,
+}: {
+  product?: Product;
+  className?: string;
+  label?: boolean;
+}) {
+  if (!product) return <div className={`rounded-2xl bg-cream-200 ${className}`} />;
+  return (
+    <Link
+      href={`/products/${product.slug}`}
+      className={`group relative block overflow-hidden rounded-2xl bg-cream-100 shadow-sm ring-1 ring-black/5 ${className}`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={product.images[0]}
+        alt={product.name}
+        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+      />
+      {label && (
+        <span className="absolute bottom-3 left-3 right-3 truncate rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-ink shadow-sm backdrop-blur">
+          {product.name} · {formatINR(product.price)}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+function HeroCard({
+  product,
+  className = "",
+  featured = false,
+}: {
+  product: Product;
+  className?: string;
+  featured?: boolean;
+}) {
+  return (
+    <Link
+      href={`/products/${product.slug}`}
+      className={`group absolute block rounded-[1.25rem] bg-white p-1.5 shadow-xl shadow-black/10 ring-1 ring-black/5 transition-transform duration-300 hover:-translate-y-1 sm:p-2 ${className}`}
+    >
+      <span className="block aspect-[4/5] overflow-hidden rounded-2xl bg-cream-100">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={product.images[0]}
+          alt={product.name}
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+      </span>
+      <span className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2">
+        <span className={`truncate font-medium text-ink ${featured ? "text-xs sm:text-sm" : "text-[10px] sm:text-xs"}`}>
+          {product.name}
+        </span>
+        <span className={`shrink-0 font-bold text-brand-700 ${featured ? "text-xs sm:text-sm" : "text-[10px] sm:text-xs"}`}>
+          {formatINR(product.price)}
+        </span>
+      </span>
+    </Link>
+  );
+}
 
 export default async function HomePage({
   searchParams,
@@ -12,253 +126,271 @@ export default async function HomePage({
   const { category } = await searchParams;
   const products = await getActiveProducts();
 
+  // Group categories case-insensitively so "Honey" and "honey" show once.
+  const norm = (c?: string | null) => (c ?? "").trim().toLowerCase();
   const categories = Array.from(
-    new Set(products.map((p) => p.category).filter(Boolean) as string[])
-  ).sort();
+    new Set(products.map((p) => norm(p.category)).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b));
+
+  const categoryImage = (c: string) =>
+    products.find((p) => norm(p.category) === c && p.images?.[0])?.images[0];
 
   const filtered = category
-    ? products.filter((p) => p.category === category)
+    ? products.filter((p) => norm(p.category) === norm(category))
     : products;
 
+  const [a, b, c] = pickShowcase(products, 3);
+  const honeyPrices = products
+    .filter((p) => norm(p.category) === "honey")
+    .map((p) => Number(p.price));
+  const honeyFrom = honeyPrices.length ? Math.min(...honeyPrices) : null;
+  const minPrice = products.length ? Math.min(...products.map((p) => Number(p.price))) : null;
+  const promise = pickShowcase(products, 6).slice(3);
+
   return (
-    <div>
-      {/* ━━━━━━━━━━ HERO ━━━━━━━━━━ */}
-      <section className="relative overflow-hidden bg-[#050505]">
-        {/* ── Aurora layers ── */}
-        <div className="pointer-events-none absolute inset-0">
-          {/* Primary aurora wave */}
-          <div className="hero-aurora-1 absolute -left-1/4 top-0 h-full w-[150%] opacity-60" />
-          {/* Secondary aurora wave */}
-          <div className="hero-aurora-2 absolute -right-1/4 top-0 h-full w-[150%] opacity-40" />
-          {/* Deep glow base */}
-          <div
-            className="absolute bottom-0 left-1/2 h-[60%] w-[80%] -translate-x-1/2 rounded-full bg-brand-600/20 blur-[150px]"
-            style={{ animation: "hero-breathe 6s ease-in-out infinite" }}
-          />
-        </div>
+    <div className="bg-white">
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden bg-cream-50">
+        {/* soft decorative blobs */}
+        <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-honey-100/70 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-brand-50 blur-3xl" />
 
-        {/* ── Floating particles ── */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="hero-particle absolute rounded-full bg-white"
-              style={{
-                width: `${1 + (i % 3)}px`,
-                height: `${1 + (i % 3)}px`,
-                left: `${(i * 5.3) % 100}%`,
-                top: `${(i * 7.1 + 10) % 100}%`,
-                opacity: 0.15 + (i % 5) * 0.08,
-                animation: `hero-float-up ${8 + (i % 6) * 2}s linear infinite`,
-                animationDelay: `${(i * 0.7) % 8}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* ── Noise texture ── */}
-        <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`
-        }} />
-
-        {/* ── Horizontal light streaks ── */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="hero-streak absolute left-0 top-[30%] h-px w-full bg-gradient-to-r from-transparent via-brand-400/30 to-transparent" style={{ animationDelay: "0s" }} />
-          <div className="hero-streak absolute left-0 top-[60%] h-px w-full bg-gradient-to-r from-transparent via-emerald-300/20 to-transparent" style={{ animationDelay: "2s" }} />
-          <div className="hero-streak absolute left-0 top-[80%] h-px w-full bg-gradient-to-r from-transparent via-brand-300/15 to-transparent" style={{ animationDelay: "4s" }} />
-        </div>
-
-        {/* ── Vignette ── */}
-        <div className="pointer-events-none absolute inset-0" style={{
-          background: "radial-gradient(ellipse at center, transparent 40%, rgba(5,5,5,0.8) 100%)"
-        }} />
-
-        <div className="relative mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-16 lg:flex lg:items-center lg:gap-16 lg:px-8 lg:py-20">
-          {/* Left content */}
-          <div className="max-w-xl lg:flex-1">
-            {/* Small badge */}
-            <div className="animate-fade-in inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 backdrop-blur-sm">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-400" />
-              </span>
-              <span className="text-xs font-medium text-brand-300/80">Fresh from Sundernagar, HP</span>
-            </div>
-
-            {/* Heading — compact on mobile */}
-            <h1 className="animate-fade-in-up delay-100 mt-4 text-2xl font-bold leading-tight tracking-tight text-white sm:mt-5 sm:text-4xl lg:text-5xl">
-              Nature&apos;s Finest,{" "}
-              <span className="hero-text-gradient bg-clip-text text-transparent">Delivered Fresh</span>
-            </h1>
-
-            {/* Subtitle */}
-            <p className="animate-fade-in-up delay-200 mt-3 max-w-md text-[13px] leading-relaxed text-white/50 sm:mt-4 sm:text-base">
-              Honey, cold-pressed oils, handpicked spices &amp; superfoods — straight from the Himalayan valleys.
+        <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-14 lg:grid-cols-[1fr_1.05fr] lg:gap-14 lg:px-8 lg:py-20">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-700 shadow-sm ring-1 ring-black/5">
+              <LogoMark className="h-3.5 text-brand-700" />
+              From Sundernagar, Himachal Pradesh
             </p>
-
-            {/* CTA */}
-            <div className="animate-fade-in-up delay-300 mt-6 flex flex-wrap items-center gap-3 sm:mt-7">
+            <h1 className="mt-5 text-[2rem] font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl lg:text-[3.4rem]">
+              Pure Himalayan goodness,{" "}
+              <span className="relative whitespace-nowrap">
+                <span className="relative z-10">straight to you.</span>
+                <span className="absolute inset-x-0 bottom-1 -z-0 h-3 rounded-full bg-honey-100 sm:h-4" />
+              </span>
+            </h1>
+            <p className="mt-4 max-w-md text-[15px] leading-relaxed text-gray-600 sm:mt-5 sm:text-base">
+              Honey, ghee, pickles, spices and pulses — made in small batches by
+              local farmers in the valleys of Himachal.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3 sm:mt-8">
               <Link
                 href="#products"
-                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition-all hover:bg-brand-400 hover:shadow-brand-400/25 sm:px-6 sm:py-3"
+                className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-800"
               >
-                {/* Shine sweep on hover */}
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                <span className="relative">Shop Now</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="relative transition-transform group-hover:translate-x-0.5">
+                Shop products
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
               <Link
                 href="/order-history"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-5 py-2.5 text-sm font-medium text-white/60 transition-all hover:border-white/25 hover:text-white/90 sm:px-6 sm:py-3"
+                className="inline-flex items-center rounded-full border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-400"
               >
-                Track Order
+                Track an order
               </Link>
             </div>
 
-            {/* Stats row */}
-            <div className="animate-fade-in-up delay-400 mt-6 flex gap-6 border-t border-white/[0.06] pt-5 sm:mt-8 sm:gap-8 sm:pt-6">
+            <dl className="mt-10 hidden gap-8 border-t border-cream-200 pt-6 sm:flex">
               {[
-                { value: `${products.length}+`, label: "Products" },
-                { value: "100%", label: "Natural" },
-                { value: "Pan-India", label: "Delivery" },
-              ].map((s, i) => (
-                <div key={s.label} style={{ animationDelay: `${0.5 + i * 0.1}s` }} className="animate-fade-in-up opacity-0">
-                  <div className="text-base font-bold text-white sm:text-xl">{s.value}</div>
-                  <div className="text-[10px] uppercase tracking-wider text-white/30 sm:text-xs">{s.label}</div>
+                { v: `${products.length}+`, l: "Products" },
+                { v: `${categories.length}`, l: "Categories" },
+                { v: "100%", l: "Natural" },
+              ].map((s) => (
+                <div key={s.l}>
+                  <dt className="text-2xl font-bold text-ink">{s.v}</dt>
+                  <dd className="text-xs uppercase tracking-wider text-gray-500">{s.l}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </div>
 
-          {/* Right side — product showcase (desktop only) */}
-          {products.length >= 3 && (
-            <div className="hidden lg:block lg:flex-1">
-              <div className="relative mx-auto w-80">
-                {/* Main product card */}
-                <div className="animate-fade-in-up delay-200 relative z-10 overflow-hidden rounded-xl border border-white/10 bg-white/5 p-2 shadow-2xl shadow-black/20 backdrop-blur-sm">
-                  {products[0]?.images?.[0] && (
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={products[0].images[0]}
-                        alt={products[0].name}
-                        className="h-56 w-full rounded-lg object-cover"
-                      />
-                      <div className="mt-2 px-1">
-                        <p className="text-sm font-medium text-white">{products[0].name}</p>
-                        <p className="text-xs text-white/50">₹{products[0].price}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
+          {/* Product showcase — fanned photo cards */}
+          {a && (
+            <div className="relative mx-auto h-[390px] w-full max-w-[560px] sm:h-[480px] lg:h-[520px]">
+              {/* soft backdrop */}
+              <div className="absolute left-1/2 top-1/2 aspect-square w-[86%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-honey-100 via-cream-100 to-brand-50" />
+              <LogoMark className="absolute right-[4%] top-[4%] h-10 rotate-12 text-brand-700/15 sm:h-14" />
+              <LogoMark className="absolute bottom-[10%] left-[2%] h-8 -rotate-12 text-honey-500/25 sm:h-12" />
 
-                {/* Floating smaller cards */}
-                {products[1]?.images?.[0] && (
-                  <div className="animate-fade-in delay-400 absolute -left-16 top-8 z-0 h-28 w-28 overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-xl shadow-black/10 backdrop-blur-sm">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={products[1].images[0]} alt={products[1].name} className="h-full w-full object-cover" />
-                  </div>
-                )}
-                {products[2]?.images?.[0] && (
-                  <div className="animate-fade-in delay-500 absolute -right-12 bottom-12 z-20 h-24 w-24 overflow-hidden rounded-lg border border-white/10 bg-white/5 shadow-xl shadow-black/10 backdrop-blur-sm">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={products[2].images[0]} alt={products[2].name} className="h-full w-full object-cover" />
-                  </div>
-                )}
+              {b && <HeroCard product={b} className="left-[2%] top-[16%] w-[37%] -rotate-[9deg] sm:left-[4%]" />}
+              {c && <HeroCard product={c} className="right-[2%] top-[16%] w-[37%] rotate-[9deg] sm:right-[4%]" />}
+              <HeroCard product={a} featured className="left-1/2 top-[3%] z-10 w-[46%] -translate-x-1/2" />
+
+              {/* floating chips */}
+              <div className="absolute bottom-0 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2.5 whitespace-nowrap rounded-full bg-white py-2 pl-2 pr-4 shadow-lg ring-1 ring-black/5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-700">
+                  <LogoMark className="h-5 text-white" />
+                </span>
+                <span className="text-xs font-semibold text-ink sm:text-sm">Farm fresh · Packed to order</span>
               </div>
+              {minPrice !== null && (
+                <div className="absolute left-0 top-[4%] z-20 hidden rounded-2xl bg-ink px-4 py-2.5 text-white shadow-lg sm:block">
+                  <p className="text-[10px] uppercase tracking-wider text-white/60">Starting at</p>
+                  <p className="text-lg font-bold leading-tight">{formatINR(minPrice)}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
       </section>
 
-      {/* ━━━━━━━━━━ TRUST BAR ━━━━━━━━━━ */}
-      <section className="border-b border-gray-100 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-3 text-xs text-gray-500 sm:text-sm">
-          {[
-            { icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", text: "100% Natural" },
-            { icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4", text: "Secure Packing" },
-            { icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z", text: "Online Payments" },
-            { icon: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z", text: "Premium Quality" },
-          ].map((b) => (
-            <span key={b.text} className="flex items-center gap-1.5">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="text-brand-600">
-                <path strokeLinecap="round" strokeLinejoin="round" d={b.icon} />
-              </svg>
-              {b.text}
-            </span>
+      {/* ── Highlights ── */}
+      <section className="border-b border-gray-100">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-4 lg:px-8">
+          {highlights.map((h) => (
+            <div key={h.title} className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cream-100 text-honey-700">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d={h.icon} />
+                </svg>
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-ink">{h.title}</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{h.desc}</p>
+              </div>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* ━━━━━━━━━━ CATEGORIES ━━━━━━━━━━ */}
-      {categories.length > 1 && (
-        <section className="mx-auto max-w-7xl px-5 pt-6 sm:px-8 lg:px-8">
-          <div className="no-scrollbar flex gap-1 overflow-x-auto border-b border-gray-200 pb-px">
-            <Link
-              href="/"
-              className={`shrink-0 border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-                !category
-                  ? "border-brand-600 text-brand-700"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              All Products
-            </Link>
-            {categories.map((c) => (
+      {/* ── Honey feature (video) ── */}
+      <section className="mx-auto max-w-7xl px-4 pt-12 sm:px-6 sm:pt-16 lg:px-8">
+        <div className="relative isolate overflow-hidden rounded-3xl bg-[#2a1a06]">
+          {/* poster shows instantly / for reduced-motion users; video plays on top */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/media/honey-drip.jpg"
+            alt=""
+            className="absolute inset-y-0 right-0 -z-20 h-full w-full object-cover sm:w-[62%]"
+          />
+          <video
+            className="absolute inset-y-0 right-0 -z-10 h-full w-full object-cover motion-reduce:hidden sm:w-[62%]"
+            src="/media/honey-drip.mp4"
+            poster="/media/honey-drip.jpg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden
+          />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/80 via-black/35 to-black/5 sm:bg-gradient-to-r sm:from-[#2a1a06] sm:from-40% sm:via-[#2a1a06]/60 sm:via-55% sm:to-transparent sm:to-75%" />
+
+          <div className="flex min-h-[340px] flex-col justify-end p-6 sm:min-h-[380px] sm:max-w-md sm:justify-center sm:p-12 lg:max-w-lg lg:min-h-[420px]">
+            <p className="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur">
+              <LogoMark className="h-3.5 text-honey-100" />
+              Straight from the hive
+            </p>
+            <h2 className="mt-4 text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">
+              Raw Himalayan honey,
+              <span className="block text-honey-100">pure &amp; unprocessed.</span>
+            </h2>
+            <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/80 sm:text-base">
+              Collected from the forests around Sundernagar and bottled without heating or
+              additives — just the way nature made it.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
               <Link
-                key={c}
-                href={`/?category=${encodeURIComponent(c)}`}
-                className={`shrink-0 border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-                  category === c
-                    ? "border-brand-600 text-brand-700"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                href="/?category=honey#products"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-honey-100"
+              >
+                Shop honey
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+              {honeyFrom !== null && (
+                <span className="text-sm text-white/80">
+                  from <span className="font-semibold text-white">{formatINR(honeyFrom)}</span>
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Shop by category ── */}
+      {categories.length > 1 && (
+        <section id="categories" className="mx-auto max-w-7xl scroll-mt-28 px-4 pt-12 sm:px-6 sm:pt-16 lg:px-8">
+          <h2 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">Shop by category</h2>
+          <div className="no-scrollbar -mx-4 mt-4 flex gap-5 overflow-x-auto px-4 py-2 sm:-mx-1 sm:px-1">
+            <Link href="/#products" className="group flex w-20 shrink-0 flex-col items-center gap-2 sm:w-24">
+              <span
+                className={`flex h-20 w-20 items-center justify-center rounded-full bg-brand-700 ring-2 ring-offset-2 transition sm:h-24 sm:w-24 ${
+                  !category ? "ring-brand-700" : "ring-transparent group-hover:ring-gray-200"
                 }`}
               >
-                {c}
-              </Link>
-            ))}
+                <LogoMark className="h-9 text-white sm:h-11" />
+              </span>
+              <span className={`text-center text-xs font-medium sm:text-sm ${!category ? "text-ink" : "text-gray-600"}`}>
+                All
+              </span>
+            </Link>
+            {categories.map((cat) => {
+              const img = categoryImage(cat);
+              const active = norm(category) === cat;
+              return (
+                <Link
+                  key={cat}
+                  href={`/?category=${encodeURIComponent(cat)}#products`}
+                  className="group flex w-20 shrink-0 flex-col items-center gap-2 sm:w-24"
+                >
+                  <span
+                    className={`h-20 w-20 overflow-hidden rounded-full bg-cream-100 ring-2 ring-offset-2 transition sm:h-24 sm:w-24 ${
+                      active ? "ring-brand-700" : "ring-transparent group-hover:ring-gray-200"
+                    }`}
+                  >
+                    {img ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={img} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center">
+                        <LogoMark className="h-8 text-cream-200" />
+                      </span>
+                    )}
+                  </span>
+                  <span className={`line-clamp-2 text-center text-xs font-medium capitalize sm:text-sm ${active ? "text-ink" : "text-gray-600"}`}>
+                    {cat}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
 
-      {/* ━━━━━━━━━━ PRODUCTS GRID ━━━━━━━━━━ */}
-      <section id="products" className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-10 lg:px-8">
-        <div className="mb-6 flex items-end justify-between">
+      {/* ── Products ── */}
+      <section id="products" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
-              {category || "Our Products"}
+            <h2 className="text-xl font-bold capitalize tracking-tight text-ink sm:text-2xl">
+              {category || "All products"}
             </h2>
-            <p className="mt-0.5 text-sm text-gray-400">
-              {filtered.length} {filtered.length === 1 ? "product" : "products"} available
+            <p className="mt-1 text-sm text-gray-500">
+              {filtered.length} {filtered.length === 1 ? "product" : "products"}
             </p>
           </div>
           {category && (
-            <Link href="/" className="text-sm font-medium text-brand-600 transition-colors hover:text-brand-700">
-              View all &rarr;
+            <Link href="/#products" className="text-sm font-medium text-gray-600 underline-offset-4 hover:text-ink hover:underline">
+              View all
             </Link>
           )}
         </div>
 
         {filtered.length === 0 ? (
-          <div className="rounded-lg border border-gray-200 bg-white p-14 text-center">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="text-gray-400">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-            </div>
-            <p className="text-base font-medium text-gray-600">No products found</p>
-            <p className="mt-1 text-sm text-gray-400">Try another category or browse all products.</p>
+          <div className="mt-8 rounded-2xl border border-dashed border-gray-200 p-14 text-center">
+            <LogoMark className="mx-auto h-10 text-gray-300" />
+            <p className="mt-4 text-base font-medium text-gray-700">No products found</p>
+            <p className="mt-1 text-sm text-gray-500">Try another category or browse everything.</p>
             <Link
-              href="/"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+              href="/#products"
+              className="mt-5 inline-flex rounded-full bg-ink px-5 py-2 text-sm font-semibold text-white hover:bg-brand-800"
             >
               View all products
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4">
             {filtered.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
@@ -266,71 +398,46 @@ export default async function HomePage({
         )}
       </section>
 
-      {/* ━━━━━━━━━━ WHY US ━━━━━━━━━━ */}
-      <section className="border-t border-gray-100 bg-gray-50">
-        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
-              Why Choose SNR Naturals?
-            </h2>
-            <p className="mx-auto mt-2 max-w-lg text-sm text-gray-500">
-              Every product is sourced from local farmers and artisans in Sundernagar.
-            </p>
+      {/* ── Our promise ── */}
+      <section className="px-4 pb-14 sm:px-6 sm:pb-20 lg:px-8">
+        <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-cream-100">
+          <div className="grid items-center gap-10 p-8 sm:p-12 lg:grid-cols-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-honey-700">Our promise</p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+                Made in small batches, the way it&apos;s been done for generations.
+              </h2>
+              <p className="mt-4 max-w-lg text-sm leading-relaxed text-gray-600">
+                Every product is sourced from local farmers and artisans in Sundernagar
+                and packed by hand when you order — nothing sits in a warehouse.
+              </p>
+              <ul className="mt-6 space-y-3">
+                {[
+                  "Farm to doorstep — no middlemen",
+                  "Handpicked and hand-processed",
+                  "No preservatives, no artificial colours",
+                ].map((t) => (
+                  <li key={t} className="flex items-center gap-3 text-sm text-gray-700">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-brand-700 shadow-sm">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {promise.map((p, i) => (
+                <CollageTile
+                  key={p.id}
+                  product={p}
+                  className={`aspect-[3/4] ${i === 1 ? "translate-y-6" : ""}`}
+                />
+              ))}
+            </div>
           </div>
-
-          <div className="mt-8 grid gap-6 sm:grid-cols-3">
-            {[
-              {
-                icon: "M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707",
-                title: "Farm to Doorstep",
-                desc: "Products sourced directly from Sundernagar valleys — no middlemen.",
-              },
-              {
-                icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
-                title: "Made with Love",
-                desc: "Handpicked, hand-processed, and packed with care for every order.",
-              },
-              {
-                icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
-                title: "Zero Chemicals",
-                desc: "No preservatives, no artificial colors — pure Himalayan goodness.",
-              },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="rounded-lg bg-white p-6 text-center shadow-sm"
-              >
-                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
-                  </svg>
-                </div>
-                <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
-                <p className="mt-1 text-xs leading-relaxed text-gray-500">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ━━━━━━━━━━ BOTTOM CTA ━━━━━━━━━━ */}
-      <section className="bg-brand-700 py-8 text-center sm:py-10">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-8">
-          <h2 className="text-xl font-bold text-white sm:text-2xl">
-            Ready to taste the difference?
-          </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-white/60">
-            Order now and get pure Himalayan products delivered across India.
-          </p>
-          <Link
-            href="#products"
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-2.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-gray-100"
-          >
-            Shop Now
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
         </div>
       </section>
     </div>

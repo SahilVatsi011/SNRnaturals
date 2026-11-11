@@ -58,7 +58,7 @@ export function AddToCartButton({
     lg: "px-6 py-3 text-base gap-2",
   };
 
-  const base = `inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 ${sizes[size]}`;
+  const base = `inline-flex items-center justify-center font-medium rounded-full transition-colors duration-200 ${sizes[size]}`;
 
   const variants = {
     primary: added
@@ -66,7 +66,7 @@ export function AddToCartButton({
       : "bg-brand-600 text-white hover:bg-brand-700",
     secondary: added
       ? "bg-brand-50 text-brand-700 border border-brand-200"
-      : "bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50",
+      : "bg-white text-ink border border-gray-200 hover:border-ink hover:bg-ink hover:text-white",
   };
 
   return (
