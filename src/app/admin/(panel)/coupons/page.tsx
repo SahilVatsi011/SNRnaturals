@@ -12,7 +12,7 @@ export default async function CouponsPage() {
   if (!isSupabaseConfigured()) {
     return (
       <div>
-        <h1 className="mb-4 text-2xl font-bold text-stone-800">Coupons</h1>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-ink">Coupons</h1>
         <NotConfiguredBanner />
       </div>
     );
@@ -26,7 +26,7 @@ export default async function CouponsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-stone-800">Coupons</h1>
+      <h1 className="mb-6 text-2xl font-bold tracking-tight text-ink">Coupons</h1>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Coupons list */}
@@ -37,10 +37,10 @@ export default async function CouponsPage() {
               subtitle="Manage discount coupons for your store."
             />
 
-            <div className="overflow-hidden rounded border border-stone-200">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto rounded-xl border border-stone-100">
+              <table className="w-full min-w-[640px] text-sm">
                 <thead>
-                  <tr className="border-b border-stone-200 bg-stone-50 text-left text-stone-500">
+                  <tr className="border-b border-stone-100 bg-stone-50/70 text-left text-xs font-medium uppercase tracking-wider text-stone-500">
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Code</th>
                     <th className="px-4 py-3">Discount</th>

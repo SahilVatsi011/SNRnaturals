@@ -16,8 +16,8 @@ export default function RevenueSparkline({ data }: { data: DailyPoint[] }) {
         >
           <defs>
             <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#059669" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="#059669" stopOpacity={0} />
+              <stop offset="0%" stopColor="#2d7a17" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="#2d7a17" stopOpacity={0} />
             </linearGradient>
           </defs>
           <Tooltip
@@ -32,8 +32,8 @@ export default function RevenueSparkline({ data }: { data: DailyPoint[] }) {
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#059669"
-            strokeWidth={1.5}
+            stroke="#2d7a17"
+            strokeWidth={2}
             fill="url(#sparkFill)"
             dot={false}
           />

@@ -48,7 +48,7 @@ export default async function EditProductPage({
 
   return (
     <div>
-      <h1 className="mb-5 text-2xl font-bold text-stone-800">
+      <h1 className="mb-5 text-2xl font-bold tracking-tight text-ink">
         Edit Product — {product.name}
       </h1>
       <ProductForm

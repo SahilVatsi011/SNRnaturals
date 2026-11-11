@@ -3,12 +3,9 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { Card, CardHeader } from "@/components/ui/Card";
 import NotConfiguredBanner from "@/components/admin/NotConfiguredBanner";
 import { buildWhatsAppPromoLink } from "@/lib/whatsapp";
+import { formatINR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-function currency(n: number) {
-  return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 0 });
-}
 
 interface CustomerSummary {
   phone: string;
@@ -21,7 +18,7 @@ export default async function CustomersPage() {
   if (!isSupabaseConfigured()) {
     return (
       <div>
-        <h1 className="mb-4 text-2xl font-bold text-stone-800">Top Customers</h1>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-ink">Top Customers</h1>
         <NotConfiguredBanner />
       </div>
     );
@@ -60,7 +57,7 @@ export default async function CustomersPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-stone-800">
+      <h1 className="mb-6 text-2xl font-bold tracking-tight text-ink">
         Top Customers{" "}
         <span className="text-base font-normal text-stone-400">
           ({topCustomers.length})
@@ -73,10 +70,10 @@ export default async function CustomersPage() {
           subtitle="Ranked by total lifetime spend. Send them promo codes via WhatsApp."
         />
 
-        <div className="overflow-hidden rounded border border-stone-200">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto rounded-xl border border-stone-100">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
-              <tr className="border-b border-stone-200 bg-stone-50 text-left text-stone-500">
+              <tr className="border-b border-stone-100 bg-stone-50/70 text-left text-xs font-medium uppercase tracking-wider text-stone-500">
                 <th className="px-4 py-3 w-12">#</th>
                 <th className="px-4 py-3">Customer</th>
                 <th className="px-4 py-3">Phone</th>
@@ -124,7 +121,7 @@ export default async function CustomersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 font-semibold text-stone-800">
-                      {currency(c.totalSpent)}
+                      {formatINR(c.totalSpent)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <a

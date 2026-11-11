@@ -249,7 +249,7 @@ export default function OrdersExport({ initialStatus = "" }: { initialStatus?: s
   }
 
   return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3 rounded-lg border border-stone-200 bg-white p-3">
+    <div className="mb-4 flex flex-wrap items-end justify-between gap-3 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-3">
       <div className="flex flex-wrap items-end gap-3">
         <span className="text-sm font-semibold text-stone-700">Export orders</span>
         <label className="flex flex-col text-xs text-stone-500">
@@ -295,7 +295,7 @@ export default function OrdersExport({ initialStatus = "" }: { initialStatus?: s
           type="button"
           onClick={() => handleExport("excel")}
           disabled={busy !== null}
-          className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-brand-700 ring-1 ring-inset ring-stone-200 transition hover:bg-brand-50 hover:ring-brand-200 disabled:opacity-50"
         >
           {busy === "excel" ? "Exporting..." : "⬇ Excel"}
         </button>
@@ -303,7 +303,7 @@ export default function OrdersExport({ initialStatus = "" }: { initialStatus?: s
           type="button"
           onClick={() => handleExport("pdf")}
           disabled={busy !== null}
-          className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-red-600 ring-1 ring-inset ring-stone-200 transition hover:bg-red-50 hover:ring-red-200 disabled:opacity-50"
         >
           {busy === "pdf" ? "Exporting..." : "⬇ PDF"}
         </button>

@@ -1,6 +1,6 @@
 export default function NotConfiguredBanner() {
   return (
-    <div className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
+    <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
       <strong>Supabase not configured yet.</strong>
       <p className="mt-1">
         To enable the admin panel and data, add your{" "}

@@ -6,14 +6,24 @@ import { formatOrderNo } from "@/lib/order-utils";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
 import OrdersExport from "@/components/admin/OrdersExport";
 import NotConfiguredBanner from "@/components/admin/NotConfiguredBanner";
+import { formatINR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-function currency(n: number) {
-  return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 0 });
-}
-
 const filters = ["", ...DEFAULTS.orderStatuses];
+
+function PaymentPill({ status }: { status: string }) {
+  const paid = status === "paid";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
+        paid ? "bg-brand-50 text-brand-700 ring-brand-600/20" : "bg-stone-100 text-stone-600 ring-stone-500/20"
+      }`}
+    >
+      {paid ? "Paid" : `Payment ${status}`}
+    </span>
+  );
+}
 
 export default async function OrdersPage({
   searchParams,
@@ -26,7 +36,7 @@ export default async function OrdersPage({
   if (!isSupabaseConfigured()) {
     return (
       <div>
-        <h1 className="mb-4 text-2xl font-bold text-stone-800">Orders</h1>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-ink">Orders</h1>
         <NotConfiguredBanner />
       </div>
     );
@@ -46,7 +56,7 @@ export default async function OrdersPage({
 
   return (
     <div>
-      <h1 className="mb-5 text-2xl font-bold text-stone-800">
+      <h1 className="mb-5 text-2xl font-bold tracking-tight text-ink">
         Orders{" "}
         <span className="text-base font-normal text-stone-400">
           ({orders?.length ?? 0})
@@ -56,7 +66,7 @@ export default async function OrdersPage({
       <OrdersExport initialStatus={activeFilter} />
 
       {/* Status filter */}
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
         {filters.map((f) => {
           const isActive = activeFilter === f;
           return (
@@ -75,10 +85,56 @@ export default async function OrdersPage({
         })}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-stone-200 bg-white">
-        <table className="w-full text-sm">
+      {/* Mobile: order cards */}
+      <ul className="space-y-3 md:hidden">
+        {(orders ?? []).length === 0 && (
+          <li className="rounded-2xl bg-white p-8 text-center text-sm text-stone-400 shadow-sm ring-1 ring-black/5">
+            No orders{activeFilter ? ` with status "${activeFilter}"` : ""}.
+          </li>
+        )}
+        {(orders ?? []).map((o) => {
+          const items = (o.items ?? []) as { qty?: number }[];
+          const itemCount = items.reduce((s, i) => s + (i.qty || 0), 0);
+          return (
+            <li key={o.id}>
+              <Link
+                href={`/admin/orders/${o.id}`}
+                className="block rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 active:bg-stone-50"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-ink">{o.customer_name}</p>
+                    <p className="text-xs text-stone-500">
+                      {formatOrderNo(o.order_no)} ·{" "}
+                      {new Date(o.created_at).toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                  <p className="text-base font-bold text-ink">{formatINR(Number(o.total))}</p>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-stone-100 pt-3">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <OrderStatusBadge status={o.order_status} />
+                    <PaymentPill status={o.payment_status} />
+                  </div>
+                  <span className="text-xs text-stone-500">
+                    {itemCount} item{itemCount === 1 ? "" : "s"}
+                  </span>
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="hidden overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-black/5 md:block">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
-            <tr className="border-b border-stone-200 bg-stone-50 text-left text-stone-500">
+            <tr className="border-b border-stone-100 bg-stone-50/70 text-left text-xs font-medium uppercase tracking-wider text-stone-500">
               <th className="px-4 py-3">Order</th>
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3">Customer</th>
@@ -135,18 +191,10 @@ export default async function OrdersPage({
                   </td>
                   <td className="px-4 py-3">{itemCount}</td>
                   <td className="px-4 py-3 font-medium">
-                    {currency(Number(o.total))}
+                    {formatINR(Number(o.total))}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded px-2 py-0.5 text-xs capitalize ${
-                        o.payment_status === "paid"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {o.payment_status}
-                    </span>
+                    <PaymentPill status={o.payment_status} />
                   </td>
                   <td className="px-4 py-3">
                     <OrderStatusBadge status={o.order_status} />

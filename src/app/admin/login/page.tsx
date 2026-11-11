@@ -2,6 +2,7 @@ import { login } from "../auth-actions";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { STORE } from "@/lib/constants";
+import { LogoMark } from "@/components/Logo";
 
 export default async function LoginPage({
   searchParams,
@@ -14,6 +15,9 @@ export default async function LoginPage({
     <div className="flex min-h-screen items-center justify-center bg-stone-100 px-4">
       <div className="w-full max-w-sm rounded-xl border border-stone-200 bg-white p-8 shadow-sm">
         <div className="mb-6 text-center">
+          <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-700">
+            <LogoMark className="h-9 text-white" />
+          </span>
           <h1 className="text-xl font-bold text-stone-800">SNR Naturals</h1>
           <p className="text-sm text-stone-500">
             {STORE.name} — Admin Panel

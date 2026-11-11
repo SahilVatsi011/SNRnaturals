@@ -3,12 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { STORE } from "@/lib/constants";
 import { formatOrderNo } from "@/lib/order-utils";
+import { formatINRExact } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-function currency(n: number) {
-  return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
-}
 
 interface OrderItem {
   name?: string;
@@ -55,6 +52,8 @@ export default async function PackingSlipPage({
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">
           <div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo-square.png" alt="SNR Naturals" className="mb-2 h-16 w-16 rounded-lg" />
             <h2 className="text-2xl font-bold text-stone-900">
               {STORE.name}
             </h2>
@@ -120,9 +119,9 @@ export default async function PackingSlipPage({
                   ) : null}
                 </td>
                 <td className="py-2 text-center">{item.qty}</td>
-                <td className="py-2 text-right">{currency(Number(item.price))}</td>
+                <td className="py-2 text-right">{formatINRExact(Number(item.price))}</td>
                 <td className="py-2 text-right font-medium">
-                  {currency(Number(item.price) * Number(item.qty))}
+                  {formatINRExact(Number(item.price) * Number(item.qty))}
                 </td>
               </tr>
             ))}
@@ -132,21 +131,21 @@ export default async function PackingSlipPage({
         <div className="mt-4 space-y-1 text-sm">
           <div className="flex justify-between">
             <span className="text-stone-500">Subtotal</span>
-            <span>{currency(Number(order.subtotal))}</span>
+            <span>{formatINRExact(Number(order.subtotal))}</span>
           </div>
           {Number(order.discount_amount) > 0 && (
             <div className="flex justify-between text-green-600">
               <span>Discount {order.coupon_code ? `(${order.coupon_code})` : ""}</span>
-              <span>-{currency(Number(order.discount_amount))}</span>
+              <span>-{formatINRExact(Number(order.discount_amount))}</span>
             </div>
           )}
           <div className="flex justify-between">
             <span className="text-stone-500">Delivery</span>
-            <span>{currency(Number(order.delivery_fee))}</span>
+            <span>{formatINRExact(Number(order.delivery_fee))}</span>
           </div>
           <div className="flex justify-between text-base font-bold">
             <span>Total</span>
-            <span>{currency(Number(order.total))}</span>
+            <span>{formatINRExact(Number(order.total))}</span>
           </div>
         </div>
 

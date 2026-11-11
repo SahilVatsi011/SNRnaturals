@@ -2,37 +2,36 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ADMIN_NAV, NavIcon, isNavActive } from "./nav-items";
 
-const nav = [
-  { href: "/admin", label: "Dashboard", icon: "📊", exact: true },
-  { href: "/admin/analytics", label: "Analytics", icon: "📈" },
-  { href: "/admin/orders", label: "Orders", icon: "🧾" },
-  { href: "/admin/products", label: "Products", icon: "📦" },
-  { href: "/admin/coupons", label: "Coupons", icon: "🎟️" },
-  { href: "/admin/customers", label: "Customers", icon: "👥" },
-  { href: "/admin/settings", label: "Settings", icon: "⚙️" },
-];
-
+/** Desktop sidebar navigation (dark sidebar). */
 export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex-1 space-y-1 p-3">
-      {nav.map((item) => {
-        const active = item.exact
-          ? pathname === item.href
-          : pathname.startsWith(item.href);
+    <nav className="flex-1 space-y-1 px-3 py-4">
+      <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
+        Menu
+      </p>
+      {ADMIN_NAV.map((item) => {
+        const active = isNavActive(item, pathname);
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
               active
-                ? "bg-brand-50 text-brand-700"
-                : "text-stone-600 hover:bg-brand-50 hover:text-brand-700"
+                ? "bg-white/10 text-white"
+                : "text-white/60 hover:bg-white/5 hover:text-white"
             }`}
           >
-            <span aria-hidden>{item.icon}</span>
+            {active && (
+              <span className="absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-brand-400" />
+            )}
+            <NavIcon
+              d={item.icon}
+              className={active ? "text-brand-300" : "text-white/50 group-hover:text-white/80"}
+            />
             {item.label}
           </Link>
         );

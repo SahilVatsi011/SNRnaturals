@@ -74,8 +74,8 @@ export default function RevenueChart({ data }: { data: DailyPoint[] }) {
           >
             <defs>
               <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#059669" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#059669" stopOpacity={0.02} />
+                <stop offset="0%" stopColor="#2d7a17" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#2d7a17" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
@@ -110,7 +110,7 @@ export default function RevenueChart({ data }: { data: DailyPoint[] }) {
             <Area
               type="monotone"
               dataKey={metric}
-              stroke="#059669"
+              stroke="#2d7a17"
               strokeWidth={2}
               fill="url(#revFill)"
               dot={false}

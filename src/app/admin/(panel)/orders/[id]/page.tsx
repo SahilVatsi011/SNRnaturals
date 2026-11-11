@@ -20,12 +20,9 @@ import {
   updateOrderStatus,
   updateCourier,
 } from "../actions";
+import { formatINRExact } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-function currency(n: number) {
-  return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
-}
 
 interface OrderItem {
   product_id?: string;
@@ -45,7 +42,7 @@ export default async function OrderDetailPage({
   if (!isSupabaseConfigured()) {
     return (
       <div>
-        <h1 className="mb-4 text-2xl font-bold text-stone-800">Order</h1>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-ink">Order</h1>
         <p className="text-sm text-stone-500">
           Supabase is not configured. Add your keys to view orders.
         </p>
@@ -96,7 +93,7 @@ export default async function OrderDetailPage({
     <div>
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-stone-800">
+          <h1 className="text-2xl font-bold tracking-tight text-ink">
             Order {formatOrderNo(order.order_no)}
           </h1>
           <p className="text-sm text-stone-500">
@@ -149,10 +146,10 @@ export default async function OrderDetailPage({
         <div className="space-y-6 lg:col-span-2">
           {/* Items */}
           <Card>
-            <h2 className="mb-3 text-lg font-semibold text-stone-800">Items</h2>
+            <h2 className="mb-3 text-base font-semibold text-ink">Items</h2>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-stone-200 text-left text-stone-500">
+                <tr className="border-b border-stone-100 text-left text-xs font-medium uppercase tracking-wider text-stone-500">
                   <th className="pb-2">Product</th>
                   <th className="pb-2">Qty</th>
                   <th className="pb-2">Price</th>
@@ -164,9 +161,9 @@ export default async function OrderDetailPage({
                   <tr key={i} className="border-b border-stone-100">
                     <td className="py-2 text-stone-700">{item.name}</td>
                     <td className="py-2">{item.qty}</td>
-                    <td className="py-2">{currency(Number(item.price))}</td>
+                    <td className="py-2">{formatINRExact(Number(item.price))}</td>
                     <td className="py-2 text-right font-medium">
-                      {currency(Number(item.price) * Number(item.qty))}
+                      {formatINRExact(Number(item.price) * Number(item.qty))}
                     </td>
                   </tr>
                 ))}
@@ -175,22 +172,22 @@ export default async function OrderDetailPage({
             <div className="mt-3 space-y-1 border-t border-stone-200 pt-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-stone-500">Subtotal</span>
-                <span>{currency(Number(order.subtotal))}</span>
+                <span>{formatINRExact(Number(order.subtotal))}</span>
               </div>
               {Number(order.discount_amount) > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount {order.coupon_code ? `(${order.coupon_code})` : ""}</span>
-                  <span>-{currency(Number(order.discount_amount))}</span>
+                  <span>-{formatINRExact(Number(order.discount_amount))}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-stone-500">Delivery fee</span>
-                <span>{currency(Number(order.delivery_fee))}</span>
+                <span>{formatINRExact(Number(order.delivery_fee))}</span>
               </div>
               <div className="flex justify-between text-base font-semibold">
                 <span>Total</span>
                 <span className="text-brand-700">
-                  {currency(Number(order.total))}
+                  {formatINRExact(Number(order.total))}
                 </span>
               </div>
             </div>
@@ -198,7 +195,7 @@ export default async function OrderDetailPage({
 
           {/* Courier */}
           <Card>
-            <h2 className="mb-3 text-lg font-semibold text-stone-800">
+            <h2 className="mb-3 text-base font-semibold text-ink">
               Courier / Tracking
             </h2>
             <CourierForm
@@ -214,7 +211,7 @@ export default async function OrderDetailPage({
         <div className="space-y-6">
           {/* Status */}
           <Card>
-            <h2 className="mb-3 text-lg font-semibold text-stone-800">Status</h2>
+            <h2 className="mb-3 text-base font-semibold text-ink">Status</h2>
             <div className="mb-3">
               <OrderStatusBadge status={order.order_status} />
             </div>
@@ -228,7 +225,7 @@ export default async function OrderDetailPage({
 
           {/* Customer */}
           <Card>
-            <h2 className="mb-3 text-lg font-semibold text-stone-800">
+            <h2 className="mb-3 text-base font-semibold text-ink">
               Customer & Delivery
             </h2>
             <dl className="space-y-2 text-sm">
@@ -269,7 +266,7 @@ export default async function OrderDetailPage({
 
           {/* Payment */}
           <Card>
-            <h2 className="mb-3 text-lg font-semibold text-stone-800">Payment</h2>
+            <h2 className="mb-3 text-base font-semibold text-ink">Payment</h2>
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <dt className="text-stone-500">Status</dt>

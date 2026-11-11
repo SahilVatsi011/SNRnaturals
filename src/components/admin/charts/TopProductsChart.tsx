@@ -112,7 +112,7 @@ export default function TopProductsChart({
             />
             <Bar
               dataKey={metric}
-              fill="#059669"
+              fill="#2d7a17"
               radius={[0, 4, 4, 0]}
               maxBarSize={22}
             />

@@ -5,8 +5,8 @@ import type { StatusCount } from "@/lib/analytics";
 import { rupees } from "@/lib/analytics";
 
 const COLORS: Record<string, string> = {
-  paid: "#059669",
-  pending: "#d97706",
+  paid: "#2d7a17",
+  pending: "#c98a12",
   failed: "#dc2626",
   cancelled: "#78716c",
   refunded: "#7c3aed",

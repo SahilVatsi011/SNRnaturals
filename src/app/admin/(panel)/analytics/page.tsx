@@ -90,7 +90,7 @@ export default async function AnalyticsPage({
   if (!isSupabaseConfigured()) {
     return (
       <div>
-        <h1 className="mb-4 text-2xl font-bold text-stone-800">Analytics</h1>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-ink">Analytics</h1>
         <NotConfiguredBanner />
       </div>
     );
@@ -154,7 +154,7 @@ export default async function AnalyticsPage({
     <div>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-stone-800">Analytics</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-ink">Analytics</h1>
           <p className="mt-1 text-sm text-stone-500">
             {rangeLabel(range.from, range.to)}
           </p>
@@ -183,7 +183,7 @@ export default async function AnalyticsPage({
         {kpis.map((k) => (
           <Card key={k.label} className="!p-4">
             <p className="text-sm text-stone-500">{k.label}</p>
-            <p className="mt-1 text-2xl font-bold text-stone-800">{k.value}</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight text-ink">{k.value}</p>
             <p className="mt-0.5">
               {k.delta !== null ? (
                 <Delta value={k.delta} />
@@ -253,9 +253,9 @@ export default async function AnalyticsPage({
               </p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[640px] text-sm">
                   <thead>
-                    <tr className="border-b border-stone-200 bg-stone-50 text-left text-stone-500">
+                    <tr className="border-b border-stone-100 bg-stone-50/70 text-left text-xs font-medium uppercase tracking-wider text-stone-500">
                       <th className="px-4 py-3">#</th>
                       <th className="px-4 py-3">Product</th>
                       <th className="px-4 py-3">Category</th>
@@ -300,10 +300,10 @@ export default async function AnalyticsPage({
               title="Day-wise Breakdown"
               subtitle="Every day in the selected range"
             />
-            <div className="max-h-96 overflow-y-auto">
-              <table className="w-full text-sm">
+            <div className="max-h-96 overflow-auto">
+              <table className="w-full min-w-[640px] text-sm">
                 <thead className="sticky top-0 bg-stone-50">
-                  <tr className="border-b border-stone-200 text-left text-stone-500">
+                  <tr className="border-b border-stone-100 text-left text-xs font-medium uppercase tracking-wider text-stone-500">
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3">Day</th>
                     <th className="px-4 py-3 text-right">Orders</th>

@@ -24,7 +24,7 @@ export default async function SettingsPage() {
   if (!isSupabaseConfigured()) {
     return (
       <div>
-        <h1 className="mb-4 text-2xl font-bold text-stone-800">Settings</h1>
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-ink">Settings</h1>
         <NotConfiguredBanner />
       </div>
     );
@@ -56,7 +56,7 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-stone-800">Settings</h1>
+      <h1 className="mb-6 text-2xl font-bold tracking-tight text-ink">Settings</h1>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Delivery slabs */}
@@ -66,10 +66,10 @@ export default async function SettingsPage() {
             subtitle="Admin-editable. Used to calculate delivery fee from cart weight."
           />
 
-          <div className="mb-5 overflow-hidden rounded border border-stone-200">
-            <table className="w-full text-sm">
+          <div className="mb-5 overflow-x-auto rounded-xl border border-stone-100">
+            <table className="w-full min-w-[640px] text-sm">
               <thead>
-                <tr className="border-b border-stone-200 bg-stone-50 text-left text-stone-500">
+                <tr className="border-b border-stone-100 bg-stone-50/70 text-left text-xs font-medium uppercase tracking-wider text-stone-500">
                   <th className="px-3 py-2">Min</th>
                   <th className="px-3 py-2">Max</th>
                   <th className="px-3 py-2">Fee</th>

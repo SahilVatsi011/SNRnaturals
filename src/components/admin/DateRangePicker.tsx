@@ -66,7 +66,7 @@ export default function DateRangePicker({
   };
 
   return (
-    <div className="mb-5 rounded-lg border border-stone-200 bg-white p-4 shadow-sm">
+    <div className="mb-5 rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-4">
       <div className="flex flex-wrap items-center gap-2">
         {PRESETS.map((p) => (
           <button

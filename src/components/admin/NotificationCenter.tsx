@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { formatINR } from "@/lib/format";
 
 const STORAGE_KEY = "snr_panel_seen_notifs";
 
@@ -59,10 +60,6 @@ function markItem(item: NotifItem, seen: Seen): Seen {
 
 function formatOrderNo(n: number | null) {
   return n == null ? "#---" : `#SNR${String(n).padStart(5, "0")}`;
-}
-
-function currency(n: number) {
-  return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 0 });
 }
 
 export default function NotificationCenter() {
@@ -137,7 +134,7 @@ export default function NotificationCenter() {
       fresh.slice(0, 5).forEach((item) => {
         if (item.itemType === "order") {
           new Notification(`New order ${formatOrderNo(item.order_no)}`, {
-            body: `${item.customer_name} — ${currency(item.total)}`,
+            body: `${item.customer_name} — ${formatINR(item.total)}`,
           });
         } else {
           new Notification("Low stock alert", {
@@ -241,14 +238,16 @@ export default function NotificationCenter() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="relative flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-brand-50 hover:text-brand-700"
+        className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white text-stone-700 shadow-sm ring-1 ring-black/5 transition hover:text-ink"
         aria-haspopup="true"
         aria-expanded={open}
+        aria-label="Notifications"
       >
-        <span aria-hidden>🔔</span>
-        <span className="flex-1 text-left">Notifications</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
         {unreadCount > 0 && (
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white ring-2 ring-canvas">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -261,7 +260,7 @@ export default function NotificationCenter() {
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <div className="fixed left-60 top-4 z-50 w-[26rem] max-w-[calc(100vw-17rem)] overflow-hidden rounded-lg border border-stone-200 bg-white shadow-xl">
+          <div className="fixed inset-x-3 top-[4.5rem] z-50 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xl sm:left-auto sm:right-6 sm:w-[26rem] lg:right-8">
             <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-3">
               <div className="flex items-center gap-2">
                 <span aria-hidden>🔔</span>
@@ -323,7 +322,7 @@ export default function NotificationCenter() {
                             New order {formatOrderNo(item.order_no)}
                           </span>
                           <span className="block text-xs text-stone-500">
-                            {item.customer_name} · {currency(item.total)} ·{" "}
+                            {item.customer_name} · {formatINR(item.total)} ·{" "}
                             {new Date(item.created_at).toLocaleTimeString(
                               "en-IN",
                               { hour: "2-digit", minute: "2-digit" }
