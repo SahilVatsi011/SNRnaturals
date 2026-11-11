@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/require-admin";
 import { slugify } from "@/lib/slug";
 
 interface ProductInput {
@@ -20,11 +21,21 @@ interface ProductInput {
   images?: string[];
 }
 
-export async function createProduct(formData: FormData) {
-  const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return { error: "Unauthorized" };
+export interface ActionResult {
+  ok?: boolean;
+  error?: string;
+}
 
+export interface ProductUsage {
+  orderCount: number;
+  sampleOrderNos: string[];
+}
+
+export async function createProduct(formData: FormData): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { error: auth.error };
+
+  const supabase = await createClient();
   const input = parseProductForm(formData);
   const slug = uniqueSlug(input.name);
 
@@ -35,13 +46,18 @@ export async function createProduct(formData: FormData) {
   if (error) return { error: error.message };
 
   revalidatePath("/admin/products");
+  revalidatePath("/");
   redirect("/admin/products");
 }
 
-export async function updateProduct(id: string, formData: FormData) {
+export async function updateProduct(
+  id: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { error: auth.error };
+
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return { error: "Unauthorized" };
 
   // Preserve existing slug
   const { data: existing } = await supabase
@@ -60,28 +76,111 @@ export async function updateProduct(id: string, formData: FormData) {
   if (error) return { error: error.message };
 
   revalidatePath("/admin/products");
+  revalidatePath("/");
   redirect("/admin/products");
 }
 
-export async function deleteProduct(id: string) {
+/**
+ * Quick toggle used by the products list: hide a product from the storefront
+ * (reversible) or bring a hidden one back. The product row is kept, so order
+ * history and analytics stay intact.
+ */
+export async function setProductActive(
+  id: string,
+  active: boolean
+): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { error: auth.error };
+
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return { error: "Unauthorized" };
+  const { error } = await supabase
+    .from("products")
+    .update({ active })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/**
+ * How many past orders contain this product. Used to warn the admin before a
+ * permanent delete — order history itself stores a snapshot of the product
+ * inside orders.items, so the orders are never broken by a delete.
+ */
+export async function getProductUsage(id: string): Promise<ProductUsage> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { orderCount: 0, sampleOrderNos: [] };
+
+  const supabase = await createClient();
+
+  const { count } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .contains("items", JSON.stringify([{ product_id: id }]));
+
+  const { data: recent } = await supabase
+    .from("orders")
+    .select("order_no")
+    .contains("items", JSON.stringify([{ product_id: id }]))
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  return {
+    orderCount: count ?? 0,
+    sampleOrderNos: (recent ?? []).map((o) => String(o.order_no)),
+  };
+}
+
+/**
+ * Permanently delete a product row. The admin has to type the exact product
+ * name to confirm. Images are removed from storage on a best-effort basis.
+ */
+export async function deleteProduct(
+  id: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { error: auth.error };
+
+  const supabase = await createClient();
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("id,name,images")
+    .eq("id", id)
+    .single();
+
+  if (!product) return { error: "Product not found." };
+
+  const confirmName = String(formData.get("confirmName") ?? "").trim();
+  if (confirmName !== product.name) {
+    return { error: "Type the exact product name to confirm the delete." };
+  }
 
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) return { error: error.message };
 
+  await removeProductImages(product.images);
+
   revalidatePath("/admin/products");
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/admin/analytics");
+  return { ok: true };
 }
 
 export async function uploadProductImage(
   productId: string | null,
   formData: FormData
-) {
-  const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return { error: "Unauthorized" };
+): Promise<ActionResult & { url?: string; path?: string }> {
+  const auth = await requireAdmin();
+  if (!auth.ok) return { error: auth.error };
 
+  const supabase = await createClient();
   const file = formData.get("file") as File | null;
   if (!file) return { error: "No file provided" };
 
@@ -119,8 +218,43 @@ function parseProductForm(formData: FormData): ProductInput {
     stock_qty: num("stock_qty"),
     category: String(formData.get("category") || "").trim() || null,
     active: formData.get("active") === "on",
-    images: JSON.parse(String(formData.get("images") || "[]")),
+    images: parseImages(formData.get("images")),
   };
+}
+
+function parseImages(value: FormDataEntryValue | null): string[] {
+  if (typeof value !== "string" || !value.trim()) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((u): u is string => typeof u === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Images are stored as public URLs pointing at the "product-images" bucket.
+ * Extract the object path so the files can be cleaned up on delete.
+ */
+async function removeProductImages(images: string[] | null) {
+  if (!images?.length) return;
+  const supabase = await createClient();
+  const marker = "/object/public/product-images/";
+  const paths = images
+    .map((url) => {
+      const idx = url.indexOf(marker);
+      return idx === -1 ? null : url.slice(idx + marker.length);
+    })
+    .filter((p): p is string => Boolean(p));
+
+  if (!paths.length) return;
+  try {
+    await supabase.storage.from("product-images").remove(paths);
+  } catch (err) {
+    console.error("[products] failed to remove product images:", err);
+  }
 }
 
 function uniqueSlug(name: string) {

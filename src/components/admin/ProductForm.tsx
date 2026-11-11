@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Label } from "@/components/ui/Input";
 import { computePriceBreakdown, type PriceBreakdown } from "@/lib/pricing";
+import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
+import {
+  setProductActive,
+  type ActionResult,
+} from "@/app/admin/(panel)/products/actions";
 
 export interface ProductFormData {
   id?: string;
@@ -57,6 +62,8 @@ export function ProductForm({
   );
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [unlistPending, startUnlist] = useTransition();
 
   const set = <K extends keyof ProductFormData>(
     key: K,
@@ -104,6 +111,21 @@ export function ProductForm({
     );
   }
 
+  function toggleVisibility() {
+    if (!form.id) return;
+    setActionError(null);
+    startUnlist(async () => {
+      const next = !form.active;
+      const res: ActionResult = await setProductActive(form.id as string, next);
+      if (res?.error) {
+        setActionError(res.error);
+        return;
+      }
+      set("active", next);
+      router.refresh();
+    });
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const fd = new FormData();
@@ -137,8 +159,8 @@ export function ProductForm({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main column */}
         <div className="space-y-5 lg:col-span-2">
-          <div className="rounded-lg border border-stone-200 bg-white p-5">
-            <h2 className="mb-4 text-lg font-semibold text-stone-800">
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-5 sm:p-6">
+            <h2 className="mb-4 text-base font-semibold text-ink">
               Product Details
             </h2>
             <div className="space-y-4">
@@ -185,8 +207,8 @@ export function ProductForm({
             </div>
           </div>
 
-          <div className="rounded-lg border border-stone-200 bg-white p-5">
-            <h2 className="mb-4 text-lg font-semibold text-stone-800">
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-5 sm:p-6">
+            <h2 className="mb-4 text-base font-semibold text-ink">
               Weight & Dimensions (for delivery)
             </h2>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -229,8 +251,8 @@ export function ProductForm({
             </div>
           </div>
 
-          <div className="rounded-lg border border-stone-200 bg-white p-5">
-            <h2 className="mb-4 text-lg font-semibold text-stone-800">
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-5 sm:p-6">
+            <h2 className="mb-4 text-base font-semibold text-ink">
               Images
             </h2>
             <div className="flex flex-wrap gap-3">
@@ -271,8 +293,8 @@ export function ProductForm({
 
         {/* Sidebar: pricing */}
         <div className="space-y-5">
-          <div className="rounded-lg border border-stone-200 bg-white p-5">
-            <h2 className="mb-4 text-lg font-semibold text-stone-800">
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-5 sm:p-6">
+            <h2 className="mb-4 text-base font-semibold text-ink">
               Pricing
             </h2>
             <div className="space-y-4">
@@ -334,7 +356,7 @@ export function ProductForm({
             </div>
           </div>
 
-          <div className="rounded-lg border border-stone-200 bg-white p-5">
+          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-black/5 p-5 sm:p-6">
             <Label className="!mb-2 block">Visibility</Label>
             <label className="flex items-center gap-2 text-sm text-stone-700">
               <input
@@ -346,6 +368,41 @@ export function ProductForm({
               Active (visible on storefront)
             </label>
           </div>
+
+          {form.id && (
+            <div className="rounded-lg border border-red-200 bg-white p-5">
+              <Label className="!mb-2 block text-red-700">Danger zone</Label>
+              <p className="mb-3 text-sm text-stone-500">
+                Hide this product from the storefront (reversible), or delete
+                it from the database permanently.
+              </p>
+              <button
+                type="button"
+                onClick={toggleVisibility}
+                disabled={unlistPending}
+                className="mb-2 w-full rounded border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50"
+              >
+                {unlistPending
+                  ? "Working…"
+                  : form.active
+                    ? "Hide from store"
+                    : "Restore to store"}
+              </button>
+              <DeleteProductButton
+                variant="danger"
+                product={{
+                  id: form.id,
+                  name: form.name,
+                  price: Number(form.price),
+                  image: form.images[0] ?? null,
+                  active: form.active,
+                }}
+              />
+              {actionError && (
+                <p className="mt-2 text-sm text-red-700">{actionError}</p>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-3">
             <Button type="submit" size="lg" className="flex-1">

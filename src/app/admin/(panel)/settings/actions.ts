@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/require-admin";
 
 export async function upsertDeliverySlab(formData: FormData) {
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return;
+  const auth = await requireAdmin();
+  if (!auth.ok) return;
 
   const id = String(formData.get("id") || "");
   const min = Number(formData.get("min_weight_grams")) || 0;
@@ -49,8 +50,8 @@ export async function upsertDeliverySlab(formData: FormData) {
 export async function deleteDeliverySlab(formData: FormData) {
   const id = String(formData.get("id") || "");
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return;
+  const auth = await requireAdmin();
+  if (!auth.ok) return;
 
   const { error } = await supabase.from("delivery_slabs").delete().eq("id", id);
   if (error) {
@@ -63,8 +64,8 @@ export async function deleteDeliverySlab(formData: FormData) {
 
 export async function saveFeeConfig(formData: FormData) {
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return;
+  const auth = await requireAdmin();
+  if (!auth.ok) return;
 
   const razorpayFeeRate = Number(formData.get("razorpayFeeRate")) / 100;
   const smsCostPerOrder = Number(formData.get("smsCostPerOrder")) || 0;
@@ -87,8 +88,8 @@ export async function saveFeeConfig(formData: FormData) {
 
 export async function saveLowStockThreshold(formData: FormData) {
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return;
+  const auth = await requireAdmin();
+  if (!auth.ok) return;
 
   const threshold = Number(formData.get("lowStockThreshold")) || 0;
 

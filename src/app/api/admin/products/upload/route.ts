@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isAdminUser } from "@/lib/admin-auth";
 
 export const runtime = "nodejs";
 
@@ -11,6 +12,13 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isAdminUser(user)) {
+    return NextResponse.json(
+      { error: "Not authorized. Admin access required." },
+      { status: 403 }
+    );
   }
 
   const formData = await request.formData();

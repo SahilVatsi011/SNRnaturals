@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/require-admin";
 
 export async function createCoupon(formData: FormData) {
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return;
+  const auth = await requireAdmin();
+  if (!auth.ok) return;
 
   const name = String(formData.get("name") || "").trim();
   const code = String(formData.get("code") || "").trim().toUpperCase();
@@ -32,8 +33,8 @@ export async function createCoupon(formData: FormData) {
 
 export async function deleteCoupon(formData: FormData) {
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return;
+  const auth = await requireAdmin();
+  if (!auth.ok) return;
 
   const id = String(formData.get("id") || "");
   const { error } = await supabase.from("coupons").delete().eq("id", id);
@@ -47,8 +48,8 @@ export async function deleteCoupon(formData: FormData) {
 
 export async function toggleCouponActive(formData: FormData) {
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return;
+  const auth = await requireAdmin();
+  if (!auth.ok) return;
 
   const id = String(formData.get("id") || "");
   const active = formData.get("active") === "true";

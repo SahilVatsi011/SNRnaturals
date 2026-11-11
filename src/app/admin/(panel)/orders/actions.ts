@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/require-admin";
 
 const VALID_STATUSES = [
   "pending",
@@ -15,8 +16,8 @@ type OrderStatus = (typeof VALID_STATUSES)[number];
 
 export async function updateOrderStatus(id: string, formData: FormData) {
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return { error: "Unauthorized" };
+  const auth = await requireAdmin();
+  if (!auth.ok) return { error: auth.error };
 
   const status = String(formData.get("status") || "");
   if (!VALID_STATUSES.includes(status as OrderStatus)) {
@@ -58,8 +59,8 @@ export async function updateOrderStatus(id: string, formData: FormData) {
 
 export async function updateCourier(id: string, formData: FormData) {
   const supabase = await createClient();
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return { error: "Unauthorized" };
+  const auth = await requireAdmin();
+  if (!auth.ok) return { error: auth.error };
 
   const courierName = String(formData.get("courier_name") || "");
   const trackingId = String(formData.get("tracking_id") || "");
