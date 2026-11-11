@@ -3,12 +3,9 @@ import { notFound } from "next/navigation";
 import { getProductBySlug } from "@/lib/products";
 import { AddToCartButton } from "@/components/store/AddToCartButton";
 import { ProductImageGallery } from "@/components/store/ProductImageGallery";
+import { formatINR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-function price(n: number) {
-  return "\u20B9" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
-}
 
 export default async function ProductDetailPage({
   params,
@@ -77,12 +74,12 @@ export default async function ProductDetailPage({
           {/* Price */}
           <div className="mt-3 flex items-center gap-3">
             <span className="text-2xl font-bold text-gray-900">
-              {price(product.price)}
+              {formatINR(product.price)}
             </span>
             {hasDiscount && (
               <>
                 <span className="text-base text-gray-400 line-through">
-                  {price(product.mrp)}
+                  {formatINR(product.mrp)}
                 </span>
                 <span className="text-sm font-medium text-red-600">
                   {discountPct}% off
@@ -92,7 +89,7 @@ export default async function ProductDetailPage({
           </div>
           {hasDiscount && (
             <p className="mt-1 text-sm text-brand-600">
-              You save {price(product.mrp - product.price)}
+              You save {formatINR(product.mrp - product.price)}
             </p>
           )}
 

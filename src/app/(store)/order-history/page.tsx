@@ -3,12 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { formatOrderNo, parseOrderInput } from "@/lib/order-utils";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
+import { formatINR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-function price(n: number) {
-  return "\u20B9" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
-}
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-IN", {
@@ -143,7 +140,7 @@ export default async function OrderHistoryPage({
               <p className="mt-0.5 text-xs text-gray-400">{formatDate(order.created_at)}</p>
             </div>
             <div className="text-right">
-              <p className="text-base font-bold text-gray-800">{price(Number(order.total))}</p>
+              <p className="text-base font-bold text-gray-800">{formatINR(Number(order.total))}</p>
               {(() => {
                 const itemList = Array.isArray(order.items) ? order.items : [];
                 const itemCount = itemList.reduce((s: number, it: { qty?: number }) => s + (it.qty || 1), 0);

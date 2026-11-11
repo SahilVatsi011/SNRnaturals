@@ -6,12 +6,9 @@ import { STORE } from "@/lib/constants";
 import { formatOrderNo } from "@/lib/order-utils";
 import { OrderStatusBadge } from "@/components/admin/OrderStatusBadge";
 import { ReorderButton } from "@/components/store/ReorderButton";
+import { formatINRExact } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-function price(n: number) {
-  return "₹" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 2 });
-}
 
 const progress: Record<string, number> = {
   pending: 1,
@@ -105,7 +102,7 @@ export default async function TrackPage({
                 <td className="py-2 text-gray-700">{item.name}</td>
                 <td className="py-2 text-center text-gray-500">{item.qty}</td>
                 <td className="py-2 text-right font-medium">
-                  {price(Number(item.price) * Number(item.qty))}
+                  {formatINRExact(Number(item.price) * Number(item.qty))}
                 </td>
               </tr>
             ))}
@@ -114,21 +111,21 @@ export default async function TrackPage({
         <div className="mt-3 space-y-1 border-t border-gray-200 pt-3 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Subtotal</span>
-            <span>{price(Number(order.subtotal))}</span>
+            <span>{formatINRExact(Number(order.subtotal))}</span>
           </div>
           {Number(order.discount_amount) > 0 && (
             <div className="flex justify-between text-green-600">
               <span>Discount {order.coupon_code ? `(${order.coupon_code})` : ""}</span>
-              <span>-{price(Number(order.discount_amount))}</span>
+              <span>-{formatINRExact(Number(order.discount_amount))}</span>
             </div>
           )}
           <div className="flex justify-between">
             <span className="text-gray-500">Delivery</span>
-            <span>{price(Number(order.delivery_fee))}</span>
+            <span>{formatINRExact(Number(order.delivery_fee))}</span>
           </div>
           <div className="flex justify-between text-base font-bold">
             <span>Total</span>
-            <span>{price(Number(order.total))}</span>
+            <span>{formatINRExact(Number(order.total))}</span>
           </div>
         </div>
       </div>

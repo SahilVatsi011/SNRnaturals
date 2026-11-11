@@ -13,10 +13,7 @@ import {
 import { normalizePhone } from "@/lib/phone";
 import { calculateDeliveryFee } from "@/lib/delivery";
 import type { DeliverySlab } from "@/lib/delivery";
-
-function price(n: number) {
-  return "\u20B9" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
-}
+import { formatINR } from "@/lib/format";
 
 const inputClass = "w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500";
 
@@ -165,7 +162,7 @@ export function CheckoutForm({
           Back to cart
         </Link>
         <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Checkout</h1>
-        <p className="mt-0.5 text-sm text-gray-400">{count} items &bull; {price(total)} total</p>
+        <p className="mt-0.5 text-sm text-gray-400">{count} items &bull; {formatINR(total)} total</p>
       </div>
 
       {/* Checkout steps indicator */}
@@ -309,7 +306,7 @@ export function CheckoutForm({
                       <p className="truncate text-sm font-medium text-gray-700">{item.name}</p>
                       <p className="text-xs text-gray-400">Qty: {item.qty}</p>
                     </div>
-                    <span className="shrink-0 text-sm font-medium text-gray-700">{price(item.price * item.qty)}</span>
+                    <span className="shrink-0 text-sm font-medium text-gray-700">{formatINR(item.price * item.qty)}</span>
                   </div>
                 ))}
               </div>
@@ -364,17 +361,17 @@ export function CheckoutForm({
               <div className="space-y-2 border-t border-gray-100 pt-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Subtotal ({count} items)</span>
-                  <span className="font-medium">{price(subtotal)}</span>
+                  <span className="font-medium">{formatINR(subtotal)}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount ({appliedCoupon?.percent}% off)</span>
-                    <span className="font-medium">-{price(discountAmount)}</span>
+                    <span className="font-medium">-{formatINR(discountAmount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span className="text-gray-500">Delivery</span>
-                  <span className="font-medium">{deliveryFee > 0 ? price(deliveryFee) : "Free"}</span>
+                  <span className="font-medium">{deliveryFee > 0 ? formatINR(deliveryFee) : "Free"}</span>
                 </div>
               </div>
 
@@ -382,7 +379,7 @@ export function CheckoutForm({
 
               <div className="flex justify-between text-base">
                 <span className="font-bold">Total</span>
-                <span className="font-bold text-brand-700">{price(total)}</span>
+                <span className="font-bold text-brand-700">{formatINR(total)}</span>
               </div>
             </div>
 

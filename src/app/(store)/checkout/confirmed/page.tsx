@@ -4,12 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { STORE } from "@/lib/constants";
 import { formatOrderNo } from "@/lib/order-utils";
+import { formatINR } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
-
-function price(n: number) {
-  return "\u20B9" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
-}
 
 export default async function OrderConfirmedPage({
   searchParams,
@@ -95,9 +92,9 @@ export default async function OrderConfirmedPage({
               )}
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-700">{item.name}</p>
-                <p className="text-xs text-gray-400">Qty: {item.qty} &times; {price(Number(item.price))}</p>
+                <p className="text-xs text-gray-400">Qty: {item.qty} &times; {formatINR(Number(item.price))}</p>
               </div>
-              <span className="text-sm font-medium text-gray-800">{price(Number(item.price) * Number(item.qty))}</span>
+              <span className="text-sm font-medium text-gray-800">{formatINR(Number(item.price) * Number(item.qty))}</span>
             </div>
           ))}
         </div>
@@ -106,21 +103,21 @@ export default async function OrderConfirmedPage({
         <div className="mt-4 space-y-1.5 border-t border-gray-100 pt-3 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Subtotal</span>
-            <span>{price(Number(order.subtotal))}</span>
+            <span>{formatINR(Number(order.subtotal))}</span>
           </div>
           {Number(order.discount_amount) > 0 && (
             <div className="flex justify-between text-green-600">
               <span>Discount {order.coupon_code ? `(${order.coupon_code})` : ""}</span>
-              <span>-{price(Number(order.discount_amount))}</span>
+              <span>-{formatINR(Number(order.discount_amount))}</span>
             </div>
           )}
           <div className="flex justify-between">
             <span className="text-gray-500">Delivery</span>
-            <span>{Number(order.delivery_fee) > 0 ? price(Number(order.delivery_fee)) : "Free"}</span>
+            <span>{Number(order.delivery_fee) > 0 ? formatINR(Number(order.delivery_fee)) : "Free"}</span>
           </div>
           <div className="flex justify-between border-t border-dashed border-gray-200 pt-2 text-base font-bold">
             <span>Total Paid</span>
-            <span className="text-brand-700">{price(Number(order.total))}</span>
+            <span className="text-brand-700">{formatINR(Number(order.total))}</span>
           </div>
         </div>
 

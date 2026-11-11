@@ -12,10 +12,7 @@ import {
 } from "@/lib/cart";
 import { calculateDeliveryFee } from "@/lib/delivery";
 import type { DeliverySlab } from "@/lib/delivery";
-
-function price(n: number) {
-  return "\u20B9" + Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 });
-}
+import { formatINR } from "@/lib/format";
 
 export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -149,7 +146,7 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
                 </div>
 
                 <div className="mt-1 text-sm text-gray-400">
-                  {price(item.price)} each
+                  {formatINR(item.price)} each
                   {item.weight_grams > 0 && (
                     <span className="ml-2">
                       &middot; {item.weight_grams >= 1000 ? `${(item.weight_grams / 1000).toFixed(1)} kg` : `${item.weight_grams}g`}
@@ -183,7 +180,7 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
 
                   {/* Item total */}
                   <span className="text-base font-bold text-gray-800">
-                    {price(item.price * item.qty)}
+                    {formatINR(item.price * item.qty)}
                   </span>
                 </div>
               </div>
@@ -199,12 +196,12 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Subtotal ({count} items)</span>
-                <span className="font-medium text-gray-700">{price(subtotal)}</span>
+                <span className="font-medium text-gray-700">{formatINR(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Delivery</span>
                 <span className="font-medium text-gray-700">
-                  {deliveryFee > 0 ? price(deliveryFee) : "Free"}
+                  {deliveryFee > 0 ? formatINR(deliveryFee) : "Free"}
                 </span>
               </div>
               <div className="flex justify-between text-xs text-gray-400">
@@ -221,7 +218,7 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
 
             <div className="flex justify-between text-base">
               <span className="font-bold text-gray-800">Total</span>
-              <span className="font-bold text-brand-700">{price(total)}</span>
+              <span className="font-bold text-brand-700">{formatINR(total)}</span>
             </div>
 
             <Link
