@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/require-admin";
 
@@ -44,6 +45,7 @@ export async function upsertDeliverySlab(formData: FormData) {
     }
   }
 
+  revalidateTag(CACHE_TAGS.deliverySlabs);
   revalidatePath("/admin/settings");
 }
 
@@ -59,6 +61,7 @@ export async function deleteDeliverySlab(formData: FormData) {
     return;
   }
 
+  revalidateTag(CACHE_TAGS.deliverySlabs);
   revalidatePath("/admin/settings");
 }
 

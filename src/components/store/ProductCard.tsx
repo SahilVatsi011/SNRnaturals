@@ -1,10 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { AddToCartButton } from "./AddToCartButton";
 import type { Product } from "@/lib/products";
 import { LogoMark } from "@/components/Logo";
 import { formatINR } from "@/lib/format";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const outOfStock = product.stock_qty <= 0;
   const image = product.images?.[0];
   const hasDiscount = product.mrp > product.price;
@@ -17,11 +18,13 @@ export function ProductCard({ product }: { product: Product }) {
       {/* Image */}
       <Link href={`/products/${product.slug}`} className="relative aspect-square w-full overflow-hidden rounded-2xl bg-cream-100">
         {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={image}
             alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            priority={priority}
+            sizes="(min-width: 1024px) 300px, (min-width: 768px) 33vw, 50vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-50">

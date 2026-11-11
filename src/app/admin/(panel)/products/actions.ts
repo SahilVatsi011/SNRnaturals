@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/require-admin";
@@ -46,6 +47,7 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
   if (error) return { error: error.message };
 
   revalidatePath("/admin/products");
+  revalidateTag(CACHE_TAGS.products);
   revalidatePath("/");
   redirect("/admin/products");
 }
@@ -76,6 +78,7 @@ export async function updateProduct(
   if (error) return { error: error.message };
 
   revalidatePath("/admin/products");
+  revalidateTag(CACHE_TAGS.products);
   revalidatePath("/");
   redirect("/admin/products");
 }
@@ -101,6 +104,7 @@ export async function setProductActive(
   if (error) return { error: error.message };
 
   revalidatePath("/admin/products");
+  revalidateTag(CACHE_TAGS.products);
   revalidatePath("/");
   revalidatePath("/admin");
   return { ok: true };
@@ -167,6 +171,7 @@ export async function deleteProduct(
   await removeProductImages(product.images);
 
   revalidatePath("/admin/products");
+  revalidateTag(CACHE_TAGS.products);
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/admin/analytics");

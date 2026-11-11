@@ -5,7 +5,13 @@ import { AddToCartButton } from "@/components/store/AddToCartButton";
 import { ProductImageGallery } from "@/components/store/ProductImageGallery";
 import { formatINR } from "@/lib/format";
 
-export const dynamic = "force-dynamic";
+// Rendered on first visit, then served from cache; refreshed when products
+// change (revalidateTag) or every 5 min.
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return [];
+}
 
 export default async function ProductDetailPage({
   params,

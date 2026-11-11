@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -293,8 +294,7 @@ export function CheckoutForm({
                 {items.map((item) => (
                   <div key={item.product_id} className="flex items-center gap-3 text-sm">
                     {item.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.image} alt={item.name} className="h-10 w-10 rounded object-cover" />
+                      <Image src={item.image} alt={item.name} width={40} height={40} className="h-10 w-10 rounded object-cover" />
                     ) : (
                       <div className="flex h-10 w-10 items-center justify-center rounded bg-gray-100">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1} className="text-gray-300">

@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { getActiveProducts, type Product } from "@/lib/products";
-import { ProductCard } from "@/components/store/ProductCard";
+import { Suspense } from "react";
+import Image from "next/image";
+import { ProductBrowser, ProductBrowserView } from "@/components/store/ProductBrowser";
 import { LogoMark } from "@/components/Logo";
 import { formatINR } from "@/lib/format";
 
-export const dynamic = "force-dynamic";
+// Static page, refreshed when products change (revalidateTag) or every 5 min.
+export const revalidate = 300;
 
 const highlights = [
   {
@@ -69,11 +72,12 @@ function CollageTile({
       href={`/products/${product.slug}`}
       className={`group relative block overflow-hidden rounded-2xl bg-cream-100 shadow-sm ring-1 ring-black/5 ${className}`}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={product.images[0]}
         alt={product.name}
-        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        fill
+        sizes="(min-width: 1024px) 200px, 33vw"
+        className="object-cover transition-transform duration-700 group-hover:scale-105"
       />
       {label && (
         <span className="absolute bottom-3 left-3 right-3 truncate rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-ink shadow-sm backdrop-blur">
@@ -98,12 +102,14 @@ function HeroCard({
       href={`/products/${product.slug}`}
       className={`group absolute block rounded-[1.25rem] bg-white p-1.5 shadow-xl shadow-black/10 ring-1 ring-black/5 transition-transform duration-300 hover:-translate-y-1 sm:p-2 ${className}`}
     >
-      <span className="block aspect-[4/5] overflow-hidden rounded-2xl bg-cream-100">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+      <span className="relative block aspect-[4/5] overflow-hidden rounded-2xl bg-cream-100">
+        <Image
           src={product.images[0]}
           alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          fill
+          priority={featured}
+          sizes="(min-width: 1024px) 260px, 46vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
       </span>
       <span className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2">
@@ -118,12 +124,7 @@ function HeroCard({
   );
 }
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ category?: string }>;
-}) {
-  const { category } = await searchParams;
+export default async function HomePage() {
   const products = await getActiveProducts();
 
   // Group categories case-insensitively so "Honey" and "honey" show once.
@@ -132,12 +133,12 @@ export default async function HomePage({
     new Set(products.map((p) => norm(p.category)).filter(Boolean))
   ).sort((a, b) => a.localeCompare(b));
 
-  const categoryImage = (c: string) =>
-    products.find((p) => norm(p.category) === c && p.images?.[0])?.images[0];
-
-  const filtered = category
-    ? products.filter((p) => norm(p.category) === norm(category))
-    : products;
+  const categoryImages = Object.fromEntries(
+    categories.map((c) => [
+      c,
+      products.find((p) => norm(p.category) === c && p.images?.[0])?.images[0],
+    ])
+  );
 
   const [a, b, c] = pickShowcase(products, 3);
   const honeyPrices = products
@@ -309,94 +310,19 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* ── Shop by category ── */}
-      {categories.length > 1 && (
-        <section id="categories" className="mx-auto max-w-7xl scroll-mt-28 px-4 pt-12 sm:px-6 sm:pt-16 lg:px-8">
-          <h2 className="text-xl font-bold tracking-tight text-ink sm:text-2xl">Shop by category</h2>
-          <div className="no-scrollbar -mx-4 mt-4 flex gap-5 overflow-x-auto px-4 py-2 sm:-mx-1 sm:px-1">
-            <Link href="/#products" className="group flex w-20 shrink-0 flex-col items-center gap-2 sm:w-24">
-              <span
-                className={`flex h-20 w-20 items-center justify-center rounded-full bg-brand-700 ring-2 ring-offset-2 transition sm:h-24 sm:w-24 ${
-                  !category ? "ring-brand-700" : "ring-transparent group-hover:ring-gray-200"
-                }`}
-              >
-                <LogoMark className="h-9 text-white sm:h-11" />
-              </span>
-              <span className={`text-center text-xs font-medium sm:text-sm ${!category ? "text-ink" : "text-gray-600"}`}>
-                All
-              </span>
-            </Link>
-            {categories.map((cat) => {
-              const img = categoryImage(cat);
-              const active = norm(category) === cat;
-              return (
-                <Link
-                  key={cat}
-                  href={`/?category=${encodeURIComponent(cat)}#products`}
-                  className="group flex w-20 shrink-0 flex-col items-center gap-2 sm:w-24"
-                >
-                  <span
-                    className={`h-20 w-20 overflow-hidden rounded-full bg-cream-100 ring-2 ring-offset-2 transition sm:h-24 sm:w-24 ${
-                      active ? "ring-brand-700" : "ring-transparent group-hover:ring-gray-200"
-                    }`}
-                  >
-                    {img ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={img} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                    ) : (
-                      <span className="flex h-full w-full items-center justify-center">
-                        <LogoMark className="h-8 text-cream-200" />
-                      </span>
-                    )}
-                  </span>
-                  <span className={`line-clamp-2 text-center text-xs font-medium capitalize sm:text-sm ${active ? "text-ink" : "text-gray-600"}`}>
-                    {cat}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* ── Products ── */}
-      <section id="products" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold capitalize tracking-tight text-ink sm:text-2xl">
-              {category || "All products"}
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {filtered.length} {filtered.length === 1 ? "product" : "products"}
-            </p>
-          </div>
-          {category && (
-            <Link href="/#products" className="text-sm font-medium text-gray-600 underline-offset-4 hover:text-ink hover:underline">
-              View all
-            </Link>
-          )}
-        </div>
-
-        {filtered.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-dashed border-gray-200 p-14 text-center">
-            <LogoMark className="mx-auto h-10 text-gray-300" />
-            <p className="mt-4 text-base font-medium text-gray-700">No products found</p>
-            <p className="mt-1 text-sm text-gray-500">Try another category or browse everything.</p>
-            <Link
-              href="/#products"
-              className="mt-5 inline-flex rounded-full bg-ink px-5 py-2 text-sm font-semibold text-white hover:bg-brand-800"
-            >
-              View all products
-            </Link>
-          </div>
-        ) : (
-          <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4">
-            {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        )}
-      </section>
+      {/* ── Categories + product grid (filtered client-side) ── */}
+      <Suspense
+        fallback={
+          <ProductBrowserView
+            products={products}
+            categories={categories}
+            categoryImages={categoryImages}
+            category={null}
+          />
+        }
+      >
+        <ProductBrowser products={products} categories={categories} categoryImages={categoryImages} />
+      </Suspense>
 
       {/* ── Our promise ── */}
       <section className="px-4 pb-14 sm:px-6 sm:pb-20 lg:px-8">

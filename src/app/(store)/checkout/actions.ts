@@ -1,6 +1,8 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { getServiceRoleClient } from "@/lib/supabase/service";
 import { isSupabaseConfigured } from "@/lib/env";
 import { generateOrderToken } from "@/lib/order-utils";
@@ -271,6 +273,9 @@ export async function verifyPayment(
         .eq("id", item.product_id);
     }
   }
+
+  // Stock changed — refresh cached product pages so "Sold out" shows promptly.
+  revalidateTag(CACHE_TAGS.products);
 
   return { orderToken: order.order_token };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 export function ProductImageGallery({
   images,
@@ -37,12 +38,14 @@ export function ProductImageGallery({
   return (
     <div className="space-y-3">
       {/* Main image */}
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+      <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <Image
           src={images[selected]}
           alt={`${name} - Image ${selected + 1}`}
-          className="aspect-square w-full object-cover transition-all duration-500"
+          fill
+          priority
+          sizes="(min-width: 1024px) 600px, 100vw"
+          className="object-cover transition-all duration-500"
         />
       </div>
 
@@ -59,11 +62,12 @@ export function ProductImageGallery({
                   : "border border-gray-200 opacity-60 hover:opacity-100"
               }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={img}
                 alt={`${name} - Thumbnail ${i + 1}`}
-                className="h-full w-full object-cover"
+                fill
+                sizes="80px"
+                className="object-cover"
               />
             </button>
           ))}

@@ -3,7 +3,8 @@ import { CheckoutForm } from "@/components/store/CheckoutForm";
 import { createOrder } from "./actions";
 import { validateCoupon } from "./coupon-actions";
 
-export const dynamic = "force-dynamic";
+// Static; delivery slabs are cached and refreshed when an admin edits them.
+export const revalidate = 300;
 
 export default async function CheckoutPage() {
   const slabs = await getActiveDeliverySlabs();

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   getCart,
@@ -110,10 +111,11 @@ export function CartView({ slabs }: { slabs: DeliverySlab[] }) {
               {/* Image */}
               {item.image ? (
                 <Link href={`/products/${item.slug}`} className="shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={item.image}
                     alt={item.name}
+                    width={112}
+                    height={112}
                     className="h-24 w-24 rounded-lg object-cover sm:h-28 sm:w-28"
                   />
                 </Link>
