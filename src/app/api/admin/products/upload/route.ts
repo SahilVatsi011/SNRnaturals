@@ -34,8 +34,10 @@ export async function POST(request: NextRequest) {
     "image/webp",
     "image/jpg",
   ]);
-  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const normalizedType = file.type || `image/${ext}`;
+  const nameExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const normalizedType = file.type || `image/${nameExt}`;
+  const ext =
+    normalizedType === "image/webp" ? "webp" : normalizedType === "image/png" ? "png" : "jpg";
 
   if (!allowedTypes.has(normalizedType)) {
     return NextResponse.json(
@@ -44,10 +46,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const MAX_SIZE = 5 * 1024 * 1024;
+  // The admin form compresses photos in the browser first (lib/image-compress),
+  // so real uploads are ~100–300 KB. This cap stays under Vercel's 4.5 MB
+  // request-body limit so oversized requests get a clear message, not a 413.
+  const MAX_SIZE = 4 * 1024 * 1024;
   if (file.size > MAX_SIZE) {
     return NextResponse.json(
-      { error: "Image must be 5MB or smaller." },
+      { error: "Image must be 4 MB or smaller." },
       { status: 400 }
     );
   }
@@ -58,7 +63,12 @@ export async function POST(request: NextRequest) {
 
   const { error: uploadError } = await supabase.storage
     .from("product-images")
-    .upload(path, file, { upsert: false, contentType: normalizedType });
+    .upload(path, file, {
+      upsert: false,
+      contentType: normalizedType,
+      // File names are unique, so the image never changes — cache it for a year.
+      cacheControl: "31536000",
+    });
 
   if (uploadError) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });

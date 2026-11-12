@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
+import { compressImage, formatBytes } from "@/lib/image-compress";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea, Label } from "@/components/ui/Input";
@@ -62,6 +64,8 @@ export function ProductForm({
   );
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [uploadNote, setUploadNote] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [unlistPending, startUnlist] = useTransition();
 
@@ -76,31 +80,49 @@ export function ProductForm({
   );
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const input = e.target;
+    const files = Array.from(input.files ?? []);
+    if (files.length === 0) return;
 
     setUploading(true);
     setUploadError(null);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("images", JSON.stringify(form.images));
+    setUploadNote(null);
+    const added: string[] = [];
+    let before = 0;
+    let after = 0;
 
-      const res = await fetch(`/api/admin/products/upload`, {
-        method: "POST",
-        body: fd,
-      });
-      const data = await res.json();
-      if (data.url) {
-        set("images", [...form.images, data.url]);
-      } else {
-        setUploadError(data.error || "Upload failed. Please try again.");
+    try {
+      for (const [i, file] of files.entries()) {
+        const label = files.length > 1 ? ` ${i + 1}/${files.length}` : "";
+        setUploadStatus(`Optimising${label}…`);
+        const img = await compressImage(file);
+
+        setUploadStatus(`Uploading${label}…`);
+        const ext = img.type === "image/webp" ? "webp" : img.type === "image/png" ? "png" : "jpg";
+        const fd = new FormData();
+        fd.append("file", new File([img.blob], `photo.${ext}`, { type: img.type }));
+
+        const res = await fetch(`/api/admin/products/upload`, { method: "POST", body: fd });
+        const data = await res.json().catch(() => ({}) as { url?: string; error?: string });
+        if (!res.ok || !data.url) {
+          throw new Error(data.error || `Upload failed (${res.status}). Please try again.`);
+        }
+        added.push(data.url);
+        before += img.originalBytes;
+        after += img.blob.size;
       }
-    } catch {
-      setUploadError("Upload failed. Please try again.");
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed. Please try again.");
     } finally {
+      if (added.length) {
+        setForm((f) => ({ ...f, images: [...f.images, ...added] }));
+        setUploadNote(
+          `${added.length} photo${added.length === 1 ? "" : "s"} added · optimised ${formatBytes(before)} → ${formatBytes(after)}`
+        );
+      }
       setUploading(false);
-      e.target.value = "";
+      setUploadStatus(null);
+      input.value = "";
     }
   }
 
@@ -257,34 +279,64 @@ export function ProductForm({
             </h2>
             <div className="flex flex-wrap gap-3">
               {form.images.map((img, i) => (
-                <div key={i} className="relative h-20 w-20">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                <div key={img + i} className="relative h-24 w-24">
+                  <Image
                     src={img}
                     alt=""
-                    className="h-full w-full rounded border border-stone-200 object-cover"
+                    fill
+                    sizes="96px"
+                    className="rounded-xl object-cover ring-1 ring-black/5"
                   />
+                  {i === 0 && (
+                    <span className="absolute bottom-1 left-1 rounded-full bg-ink/80 px-2 py-0.5 text-[10px] font-semibold text-white">
+                      Cover
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => removeImage(i)}
-                    className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-xs text-white"
+                    aria-label="Remove photo"
+                    className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow"
                   >
                     ×
                   </button>
                 </div>
               ))}
-              <label className="flex h-20 w-20 cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-stone-300 text-stone-400 hover:border-brand-500 hover:text-brand-600">
-                <span className="text-xl">{uploading ? "…" : "+"}</span>
-                <span className="text-xs">Upload</span>
+              <label
+                className={`flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed text-center transition ${
+                  uploading
+                    ? "cursor-wait border-brand-300 bg-brand-50 text-brand-700"
+                    : "border-stone-300 text-stone-400 hover:border-brand-500 hover:text-brand-600"
+                }`}
+              >
+                {uploading ? (
+                  <>
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand-300 border-t-brand-700" />
+                    <span className="px-1 text-[11px] font-medium leading-tight">{uploadStatus}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-2xl leading-none">+</span>
+                    <span className="text-xs">Add photos</span>
+                  </>
+                )}
                 <input
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/*"
+                  multiple
                   className="hidden"
                   onChange={handleImageUpload}
                   disabled={uploading}
                 />
               </label>
             </div>
+            <p className="mt-3 text-xs text-stone-500">
+              Any size works — photos are automatically resized and compressed before upload.
+              The first photo is the cover.
+            </p>
+            {uploadNote && !uploadError && (
+              <p className="mt-2 text-sm text-brand-700">✓ {uploadNote}</p>
+            )}
             {uploadError && (
               <p className="mt-2 text-sm text-red-600">{uploadError}</p>
             )}
