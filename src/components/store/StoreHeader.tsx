@@ -55,11 +55,6 @@ export function StoreHeader() {
             : "bg-white"
         }`}
       >
-        {/* Announcement bar */}
-        <div className="bg-ink px-4 py-2 text-center text-xs font-medium text-white/90">
-          Free delivery on orders above 2kg<span className="hidden sm:inline"> &bull; Straight from Sundernagar</span>
-        </div>
-
         {/* Main nav */}
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
 
