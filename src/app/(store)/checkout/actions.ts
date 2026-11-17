@@ -6,7 +6,7 @@ import { CACHE_TAGS } from "@/lib/cache-tags";
 import { getServiceRoleClient } from "@/lib/supabase/service";
 import { isSupabaseConfigured } from "@/lib/env";
 import { generateOrderToken } from "@/lib/order-utils";
-import { calculateDeliveryFee, type DeliverySlab } from "@/lib/delivery";
+import { calculateDeliveryFee, type DeliverySlab, type DeliveryZone } from "@/lib/delivery";
 import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay";
 import { normalizePhone } from "@/lib/phone";
 
@@ -105,15 +105,17 @@ export async function createOrder(
     totalWeight += Number(p.weight_grams || 0) * line.qty;
   }
 
-  // Fetch active delivery slabs and compute fee
-  const { data: slabs } = await supabase
-    .from("delivery_slabs")
-    .select("id,min_weight_grams,max_weight_grams,price,active")
-    .eq("active", true);
+  // Delivery fee: PIN-code zone (if any matches) × cart weight.
+  const [{ data: slabs }, { data: zones }] = await Promise.all([
+    supabase.from("delivery_slabs").select("*").eq("active", true),
+    // Missing table (migration not run yet) just means "no zones".
+    supabase.from("delivery_zones").select("id,name,pin_prefixes,active").eq("active", true),
+  ]);
 
   const { fee: deliveryFee } = calculateDeliveryFee(
     totalWeight,
-    (slabs ?? []) as DeliverySlab[]
+    (slabs ?? []) as DeliverySlab[],
+    { pincode, zones: (zones ?? []) as DeliveryZone[] }
   );
 
   // Handle coupon code

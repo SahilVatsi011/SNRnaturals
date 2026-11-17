@@ -13,8 +13,8 @@ import {
   type CartItem,
 } from "@/lib/cart";
 import { normalizePhone } from "@/lib/phone";
-import { calculateDeliveryFee } from "@/lib/delivery";
-import type { DeliverySlab } from "@/lib/delivery";
+import { calculateDeliveryFee, cleanPincode } from "@/lib/delivery";
+import type { DeliverySlab, DeliveryZone } from "@/lib/delivery";
 import { formatINR } from "@/lib/format";
 import { LogoMark } from "@/components/Logo";
 
@@ -112,10 +112,12 @@ function PhoneField({
 
 export function CheckoutForm({
   slabs,
+  zones = [],
   createOrder,
   validateCoupon,
 }: {
   slabs: DeliverySlab[];
+  zones?: DeliveryZone[];
   createOrder: (
     formData: FormData
   ) => Promise<{ orderToken?: string; orderId?: string; razorpayOrderId?: string; amount?: number; error?: string }>;
@@ -134,6 +136,7 @@ export function CheckoutForm({
   const [whatsappSame, setWhatsappSame] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
+  const [pincode, setPincode] = useState("");
 
   // Coupon state
   const [couponInput, setCouponInput] = useState("");
@@ -153,10 +156,13 @@ export function CheckoutForm({
   const subtotal = useMemo(() => cartSubtotal(items), [items]);
   const weight = useMemo(() => cartWeight(items), [items]);
   const count = useMemo(() => cartCount(items), [items]);
+  const pinOk = cleanPincode(pincode) !== null;
   const { fee: deliveryFee } = useMemo(
-    () => calculateDeliveryFee(weight, slabs),
-    [weight, slabs]
+    () => calculateDeliveryFee(weight, slabs, { pincode, zones }),
+    [weight, slabs, pincode, zones]
   );
+  // With zones, the charge depends on the PIN; until it's entered we show the standard rate as an estimate.
+  const deliveryPending = zones.length > 0 && !pinOk;
 
   const discountAmount = appliedCoupon
     ? Math.round((subtotal * appliedCoupon.percent) / 100)
@@ -291,7 +297,10 @@ export function CheckoutForm({
       )}
       <div className="flex justify-between">
         <dt className="text-stone-500">Delivery</dt>
-        <dd className="font-medium text-ink">{deliveryFee > 0 ? formatINR(deliveryFee) : "Free"}</dd>
+        <dd className="text-right font-medium text-ink">
+          {deliveryFee > 0 ? formatINR(deliveryFee) : "Free"}
+          {deliveryPending && <span className="block text-[11px] font-normal text-stone-400">Enter PIN code for exact charge</span>}
+        </dd>
       </div>
       <div className="flex items-baseline justify-between border-t border-dashed border-stone-200 pt-3">
         <dt className="text-base font-semibold text-ink">Total</dt>
@@ -465,7 +474,8 @@ export function CheckoutForm({
                       maxLength={6}
                       pattern="[1-9][0-9]{5}"
                       title="6-digit PIN code"
-                      onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, "").slice(0, 6); }}
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                       className={field}
                     />
                   </div>

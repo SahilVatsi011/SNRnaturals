@@ -6,19 +6,13 @@ import { Card, CardHeader } from "@/components/ui/Card";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Input, Label } from "@/components/ui/Input";
 import NotConfiguredBanner from "@/components/admin/NotConfiguredBanner";
+import Link from "next/link";
 import {
-  upsertDeliverySlab,
-  deleteDeliverySlab,
   saveFeeConfig,
   saveLowStockThreshold,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
-
-function kg(g: number | null | undefined) {
-  if (g == null) return "No limit";
-  return g >= 1000 ? `${g / 1000} kg` : `${g} g`;
-}
 
 export default async function SettingsPage() {
   if (!isSupabaseConfigured()) {
@@ -31,14 +25,7 @@ export default async function SettingsPage() {
   }
 
   const supabase = await createClient();
-  const [{ data: slabs }, { data: settings }] = await Promise.all([
-    supabase
-      .from("delivery_slabs")
-      .select("*")
-      .order("min_weight_grams")
-      .order("max_weight_grams", { ascending: true, nullsFirst: false }),
-    supabase.from("settings").select("*"),
-  ]);
+  const { data: settings } = await supabase.from("settings").select("*");
 
   const feeConfig = getFeeConfig();
 
@@ -59,105 +46,17 @@ export default async function SettingsPage() {
       <h1 className="mb-6 text-2xl font-bold tracking-tight text-ink">Settings</h1>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Delivery slabs */}
+        {/* Delivery charges moved to their own page */}
         <Card className="lg:col-span-2">
-          <CardHeader
-            title="Delivery Fee Slabs (by weight)"
-            subtitle="Admin-editable. Used to calculate delivery fee from cart weight."
-          />
-
-          <div className="mb-5 overflow-x-auto rounded-xl border border-stone-100">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead>
-                <tr className="border-b border-stone-100 bg-stone-50/70 text-left text-xs font-medium uppercase tracking-wider text-stone-500">
-                  <th className="px-3 py-2">Min</th>
-                  <th className="px-3 py-2">Max</th>
-                  <th className="px-3 py-2">Fee</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2 text-right"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {(slabs ?? []).map((s) => (
-                  <tr key={s.id} className="border-b border-stone-100">
-                    <td className="px-3 py-2">{kg(s.min_weight_grams)}</td>
-                    <td className="px-3 py-2">{kg(s.max_weight_grams)}</td>
-                    <td className="px-3 py-2 font-medium">
-                      ₹{Number(s.price).toLocaleString("en-IN")}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`rounded px-2 py-0.5 text-xs ${
-                          s.active
-                            ? "bg-green-100 text-green-700"
-                            : "bg-stone-100 text-stone-500"
-                        }`}
-                      >
-                        {s.active ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <form action={deleteDeliverySlab}>
-                        <input type="hidden" name="id" value={s.id} />
-                        <SubmitButton unstyled pendingLabel="Deleting…" className="text-sm text-red-600 hover:underline">
-                          Delete
-                        </SubmitButton>
-                      </form>
-                    </td>
-                  </tr>
-                ))}
-                {(slabs ?? []).length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="px-3 py-4 text-center text-stone-400">
-                      No slabs yet. Add one below.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-ink">Delivery charges</h2>
+              <p className="mt-0.5 text-sm text-stone-500">Weight-based rates, with different rates by PIN code.</p>
+            </div>
+            <Link href="/admin/delivery" className="rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800">
+              Manage delivery charges
+            </Link>
           </div>
-
-          <form action={upsertDeliverySlab} className="grid gap-3 sm:grid-cols-4">
-            <div>
-              <Label htmlFor="min_weight_grams">Min (g)</Label>
-              <Input
-                id="min_weight_grams"
-                name="min_weight_grams"
-                type="number"
-                defaultValue={0}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="max_weight_grams">Max (g) — blank = no limit</Label>
-              <Input
-                id="max_weight_grams"
-                name="max_weight_grams"
-                type="number"
-                placeholder="e.g. 500"
-              />
-            </div>
-            <div>
-              <Label htmlFor="price">Fee (₹)</Label>
-              <Input id="price" name="price" type="number" step="0.01" required />
-            </div>
-            <div className="flex items-end gap-3">
-              <label className="flex items-center gap-2 text-sm text-stone-700">
-                <input
-                  type="checkbox"
-                  name="active"
-                  defaultChecked
-                  className="h-4 w-4 rounded border-stone-300 text-brand-600 focus:ring-brand-500"
-                />
-                Active
-              </label>
-              <SubmitButton pendingLabel="Adding…">Add slab</SubmitButton>
-            </div>
-          </form>
-          <p className="mt-2 text-xs text-stone-400">
-            Delivery fee is selected by the slab whose range contains the total
-            cart weight.
-          </p>
         </Card>
 
         {/* Fee config */}
