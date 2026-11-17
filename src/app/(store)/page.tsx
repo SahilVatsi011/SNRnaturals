@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ProductBrowser, ProductBrowserView } from "@/components/store/ProductBrowser";
 import { LogoMark } from "@/components/Logo";
 import { formatINR } from "@/lib/format";
+import { HeroCarousel } from "@/components/store/HeroCarousel";
 
 // Static page, refreshed when products change (revalidateTag) or every 5 min.
 export const revalidate = 300;
@@ -88,42 +89,6 @@ function CollageTile({
   );
 }
 
-function HeroCard({
-  product,
-  className = "",
-  featured = false,
-}: {
-  product: Product;
-  className?: string;
-  featured?: boolean;
-}) {
-  return (
-    <Link
-      href={`/products/${product.slug}`}
-      className={`group absolute block rounded-[1.25rem] bg-white p-1.5 shadow-xl shadow-black/10 ring-1 ring-black/5 transition-transform duration-300 hover:-translate-y-1 sm:p-2 ${className}`}
-    >
-      <span className="relative block aspect-[4/5] overflow-hidden rounded-2xl bg-cream-100">
-        <Image
-          src={product.images[0]}
-          alt={product.name}
-          fill
-          priority={featured}
-          sizes="(min-width: 1024px) 260px, 46vw"
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-      </span>
-      <span className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-2">
-        <span className={`truncate font-medium text-ink ${featured ? "text-xs sm:text-sm" : "text-[10px] sm:text-xs"}`}>
-          {product.name}
-        </span>
-        <span className={`shrink-0 font-bold text-brand-700 ${featured ? "text-xs sm:text-sm" : "text-[10px] sm:text-xs"}`}>
-          {formatINR(product.price)}
-        </span>
-      </span>
-    </Link>
-  );
-}
-
 export default async function HomePage() {
   const products = await getActiveProducts();
 
@@ -140,7 +105,12 @@ export default async function HomePage() {
     ])
   );
 
-  const [a, b, c] = pickShowcase(products, 3);
+  const heroSlides = pickShowcase(products, 8).map((p) => ({
+    slug: p.slug,
+    name: p.name,
+    price: Number(p.price),
+    image: p.images[0],
+  }));
   const honeyPrices = products
     .filter((p) => norm(p.category) === "honey")
     .map((p) => Number(p.price));
@@ -205,17 +175,15 @@ export default async function HomePage() {
             </dl>
           </div>
 
-          {/* Product showcase — fanned photo cards */}
-          {a && (
-            <div className="relative mx-auto h-[390px] w-full max-w-[560px] sm:h-[480px] lg:h-[520px]">
+          {/* Product showcase — fanned photo cards that slide */}
+          {heroSlides.length > 0 && (
+            <div className="relative mx-auto h-[350px] w-full max-w-[560px] min-[420px]:h-[390px] sm:h-[480px] lg:h-[520px]">
               {/* soft backdrop */}
               <div className="absolute left-1/2 top-1/2 aspect-square w-[86%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-honey-100 via-cream-100 to-brand-50" />
               <LogoMark className="absolute right-[4%] top-[4%] h-10 rotate-12 text-brand-700/15 sm:h-14" />
               <LogoMark className="absolute bottom-[10%] left-[2%] h-8 -rotate-12 text-honey-500/25 sm:h-12" />
 
-              {b && <HeroCard product={b} className="left-[2%] top-[16%] w-[37%] -rotate-[9deg] sm:left-[4%]" />}
-              {c && <HeroCard product={c} className="right-[2%] top-[16%] w-[37%] rotate-[9deg] sm:right-[4%]" />}
-              <HeroCard product={a} featured className="left-1/2 top-[3%] z-10 w-[46%] -translate-x-1/2" />
+              <HeroCarousel slides={heroSlides} />
 
               {/* floating chips */}
               <div className="absolute bottom-0 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2.5 whitespace-nowrap rounded-full bg-white py-2 pl-2 pr-4 shadow-lg ring-1 ring-black/5">
