@@ -1,35 +1,37 @@
 // src/config/business.ts
-// ⚠️ PLACEHOLDERS — replace with real client details before going live.
-// Business name/address/phone/email MUST match Razorpay dashboard + PAN/GST exactly.
+// Business details shown in the footer and on the About / Contact / policy pages.
+// Name/address/phone/email should match the Razorpay dashboard.
+// Leave a field "" to hide it (owner, GSTIN, WhatsApp, street address, PIN).
 
 export const business = {
   brandName: "SNR Naturals",
-  legalName: "[LEGAL BUSINESS NAME]",
-  ownerName: "[OWNER NAME]",
+  /** Registered business name; "" falls back to brandName (see businessName()). */
+  legalName: "",
+  ownerName: "",
   gstin: "",
   websiteUrl: "https://snrnaturals.com",
 
   address: {
-    line1: "[SHOP / BUILDING, STREET]",
+    line1: "",
     city: "Sundernagar",
     district: "Mandi",
     state: "Himachal Pradesh",
-    pin: "[PIN]",
+    pin: "",
     country: "India",
   },
 
   contact: {
-    phone: "+91 [PHONE]",
-    whatsapp: "+91 [WHATSAPP]",
-    email: "[support@example.com]",
+    phone: "+91 70187 81496",
+    whatsapp: "",
+    email: "sundernagarnaturals18881@gmail.com",
     hours: "Monday to Saturday, 10:00 AM – 6:00 PM IST",
     replyTime: "24 working hours",
   },
 
   grievanceOfficer: {
-    name: "[GRIEVANCE OFFICER NAME]",
-    email: "[grievance@example.com]",
-    phone: "+91 [PHONE]",
+    name: "",
+    email: "sundernagarnaturals18881@gmail.com",
+    phone: "+91 70187 81496",
     ackTime: "48 hours",
   },
 
@@ -40,7 +42,7 @@ export const business = {
 
   pricing: {
     taxNote: "inclusive of all applicable taxes",
-    freeShippingAbove: 999 as number | null,
+    freeShippingAbove: null as number | null,
     shippingCharge: 60,
     shippingNoteOutsideHP: "",
   },
@@ -64,14 +66,20 @@ export const business = {
 
   legal: {
     jurisdiction: "Mandi, Himachal Pradesh",
-    lastUpdated: "[DD Month YYYY]",
+    lastUpdated: "17 November 2026",
   },
 } as const;
 
-/** Full formatted address string */
+/** Name to show for the business: the legal name if set, else the brand name. */
+export function businessName(): string {
+  return business.legalName || business.brandName;
+}
+
+/** Full formatted address string (empty parts are skipped). */
 export function fullAddress() {
   const a = business.address;
-  return `${a.line1}, ${a.city}, ${a.district}, ${a.state} – ${a.pin}, ${a.country}`;
+  const state = a.pin ? `${a.state} – ${a.pin}` : a.state;
+  return [a.line1, a.city, a.district, state, a.country].filter(Boolean).join(", ");
 }
 
 /** WhatsApp digits only (for wa.me link) */
@@ -82,11 +90,12 @@ export function whatsappDigits() {
 /** Shipping charge text for pricing / shipping pages */
 export function shippingChargeText() {
   const p = business.pricing;
+  // Checkout charges delivery by total cart weight (admin → Settings → delivery slabs).
   let text = "";
   if (p.freeShippingAbove != null) {
     text = `Free shipping on orders above ₹${p.freeShippingAbove}; ₹${p.shippingCharge} for orders below that.`;
   } else {
-    text = `A flat shipping charge of ₹${p.shippingCharge} applies.`;
+    text = "The delivery charge depends on the total weight of your order.";
   }
   if (p.shippingNoteOutsideHP) {
     text += " " + p.shippingNoteOutsideHP;

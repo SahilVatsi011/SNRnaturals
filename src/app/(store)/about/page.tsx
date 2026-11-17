@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PolicyLayout } from "@/components/store/PolicyLayout";
-import { business, fullAddress } from "@/config/business";
+import { business, businessName, fullAddress } from "@/config/business";
 
 export const metadata: Metadata = {
   title: `About Us | ${business.brandName}`,
@@ -17,7 +17,7 @@ export default function AboutPage() {
         Our aim is simple: honest products, clearly labelled, delivered fresh to your door.
       </p>
       <ul>
-        <li><strong>Business name:</strong> {business.legalName}</li>
+        <li><strong>Business name:</strong> {businessName()}</li>
         <li><strong>Address:</strong> {fullAddress()}</li>
         {business.gstin && <li><strong>GSTIN:</strong> {business.gstin}</li>}
       </ul>

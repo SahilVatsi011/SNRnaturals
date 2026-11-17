@@ -3,14 +3,15 @@
  * Stored as code defaults; overridable via Supabase `settings` table at runtime.
  */
 export const STORE = {
-  name: process.env.NEXT_PUBLIC_STORE_NAME || "Sundergar Naturals",
+  name: process.env.NEXT_PUBLIC_STORE_NAME || "SNR Naturals",
   shortName: process.env.NEXT_PUBLIC_STORE_SHORT_NAME || "snrnaturals",
   domain: process.env.NEXT_PUBLIC_STORE_DOMAIN || "snrnaturals.com",
-  phone: process.env.NEXT_PUBLIC_STORE_PHONE || "",
-  city: "Sundergar",
+  phone: process.env.NEXT_PUBLIC_STORE_PHONE || "+91 70187 81496",
+  city: "Sundernagar",
   district: "Mandi",
   state: "Himachal Pradesh",
-  appUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  // Used in WhatsApp messages and tracking links, so it must be the live site.
+  appUrl: process.env.NEXT_PUBLIC_APP_URL || "https://www.snrnaturals.com",
 };
 
 /** Default economic constants; overridable via settings table. */

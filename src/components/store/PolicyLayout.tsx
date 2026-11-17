@@ -30,9 +30,11 @@ export function PolicyLayout({
           <a href={`tel:${c.phone.replace(/\s/g, "")}`} className="transition-colors hover:text-brand-600">
             {c.phone}
           </a>
-          <a href={`https://wa.me/${waDigits}`} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-brand-600">
-            WhatsApp
-          </a>
+          {waDigits && (
+            <a href={`https://wa.me/${waDigits}`} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-brand-600">
+              WhatsApp
+            </a>
+          )}
           <a href={`mailto:${c.email}`} className="transition-colors hover:text-brand-600">
             {c.email}
           </a>

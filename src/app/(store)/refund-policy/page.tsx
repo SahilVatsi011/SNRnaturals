@@ -18,7 +18,7 @@ export default function RefundPolicyPage() {
       {r.cancellationMode === "window" ? (
         <>
           <ul>
-            <li>You can cancel your order within <strong>{r.cancellationWindow}</strong> of placing it, <strong>provided it has not been dispatched</strong>, by contacting us on WhatsApp/phone/email with your Order ID.</li>
+            <li>You can cancel your order within <strong>{r.cancellationWindow}</strong> of placing it, <strong>provided it has not been dispatched</strong>, by contacting us on {waDigits ? "WhatsApp/phone/email" : "phone or email"} with your Order ID.</li>
             <li>Orders cancelled within this window receive a <strong>full refund</strong>.</li>
             <li>After {r.cancellationWindow} or once the order is dispatched, it cannot be cancelled.</li>
           </ul>
@@ -48,7 +48,11 @@ export default function RefundPolicyPage() {
 
       <h2>5. Contact</h2>
       <p>
-        <a href={`mailto:${c.email}`}>{c.email}</a> | <a href={`tel:${c.phone.replace(/\s/g, "")}`}>{c.phone}</a> | WhatsApp: <a href={`https://wa.me/${waDigits}`} target="_blank" rel="noopener noreferrer">{c.whatsapp}</a>
+        <a href={`mailto:${c.email}`}>{c.email}</a> | <a href={`tel:${c.phone.replace(/\s/g, "")}`}>{c.phone}</a>{waDigits && (
+          <>
+            {" "}| WhatsApp: <a href={`https://wa.me/${waDigits}`} target="_blank" rel="noopener noreferrer">{c.whatsapp}</a>
+          </>
+        )}
       </p>
     </PolicyLayout>
   );

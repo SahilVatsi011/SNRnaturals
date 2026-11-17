@@ -25,9 +25,11 @@ export default function StoreLayout({
               <Link href="/" className="inline-block text-white">
                 <Logo markClassName="h-10" textClassName="text-lg" />
               </Link>
-              <p className="mt-3 text-sm leading-relaxed text-white/70">
-                {business.legalName}
-              </p>
+              {business.legalName && (
+                <p className="mt-3 text-sm leading-relaxed text-white/70">
+                  {business.legalName}
+                </p>
+              )}
               <p className="mt-1 text-xs text-white/50">
                 {STORE.city}, {STORE.state}
               </p>

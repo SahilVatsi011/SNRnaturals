@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PolicyLayout } from "@/components/store/PolicyLayout";
-import { business, fullAddress } from "@/config/business";
+import { business, businessName, fullAddress } from "@/config/business";
 
 export const metadata: Metadata = {
   title: `Terms & Conditions | ${business.brandName}`,
@@ -14,7 +14,7 @@ export default function TermsPage() {
   return (
     <PolicyLayout title="Terms & Conditions" showLastUpdated>
       <p>
-        These Terms &amp; Conditions apply to your use of {business.websiteUrl} (&quot;Website&quot;), operated by {business.legalName}, {fullAddress()} (&quot;{business.brandName}&quot;, &quot;we&quot;, &quot;us&quot;). By using this Website or placing an order, you agree to these terms.
+        These Terms &amp; Conditions apply to your use of {business.websiteUrl} (&quot;Website&quot;), operated by {businessName()}, {fullAddress()} (&quot;{business.brandName}&quot;, &quot;we&quot;, &quot;us&quot;). By using this Website or placing an order, you agree to these terms.
       </p>
 
       <h2>1. Eligibility</h2>

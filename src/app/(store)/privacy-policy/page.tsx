@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PolicyLayout } from "@/components/store/PolicyLayout";
-import { business, fullAddress } from "@/config/business";
+import { business, businessName, fullAddress } from "@/config/business";
 
 export const metadata: Metadata = {
   title: `Privacy Policy | ${business.brandName}`,
@@ -14,7 +14,7 @@ export default function PrivacyPolicyPage() {
   return (
     <PolicyLayout title="Privacy Policy" showLastUpdated>
       <p>
-        {business.legalName} (&quot;{business.brandName}&quot;) respects your privacy. This policy explains what information we collect on {business.websiteUrl} and how we use it.
+        {businessName()}{business.legalName && <> (&quot;{business.brandName}&quot;)</>} respects your privacy. This policy explains what information we collect on {business.websiteUrl} and how we use it.
       </p>
 
       <h2>1. Information we collect</h2>
@@ -46,7 +46,7 @@ export default function PrivacyPolicyPage() {
 
       <h2>8. Grievance Officer</h2>
       <p>In line with the Information Technology Act, 2000 and the Digital Personal Data Protection Act, 2023:</p>
-      <p>{g.name}, <a href={`mailto:${g.email}`}>{g.email}</a>, <a href={`tel:${g.phone.replace(/\s/g, "")}`}>{g.phone}</a>, {fullAddress()}. We will acknowledge complaints within {g.ackTime}.</p>
+      <p>{g.name ? `${g.name}, ` : ""}<a href={`mailto:${g.email}`}>{g.email}</a>, <a href={`tel:${g.phone.replace(/\s/g, "")}`}>{g.phone}</a>, {fullAddress()}. We will acknowledge complaints within {g.ackTime}.</p>
 
       <h2>9. Changes</h2>
       <p>We may update this policy; the latest version will always be on this page.</p>
