@@ -102,7 +102,7 @@ function RazorpayPaymentPage() {
         contact: customerPhone,
       },
       theme: {
-        color: "#059669",
+        color: "#1a620a",
       },
       modal: {
         ondismiss: () => {
@@ -168,9 +168,18 @@ function RazorpayPaymentPage() {
                 </div>
                 <span className="text-sm font-bold text-white">Razorpay</span>
               </div>
-              <span className="rounded bg-white/10 px-2.5 py-0.5 text-xs font-medium text-blue-100">
-                Test Mode
-              </span>
+              {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID?.startsWith("rzp_test_") ? (
+                <span className="rounded bg-white/10 px-2.5 py-0.5 text-xs font-medium text-blue-100">
+                  Test Mode
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 rounded bg-white/10 px-2.5 py-0.5 text-xs font-medium text-blue-100">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Secure payment
+                </span>
+              )}
             </div>
           </div>
 
