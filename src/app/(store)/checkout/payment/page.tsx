@@ -5,6 +5,8 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyPayment } from "../actions";
 import { saveCart } from "@/lib/cart";
+import { formatINRExact } from "@/lib/format";
+import { LogoMark } from "@/components/Logo";
 
 function clearCart() {
   saveCart([]);
@@ -31,8 +33,8 @@ export default function PaymentPageWrapper() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[70vh] items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+        <div className="flex min-h-[70vh] items-center justify-center bg-canvas">
+          <span className="h-10 w-10 animate-spin rounded-full border-[3px] border-brand-100 border-t-brand-700" />
         </div>
       }
     >
@@ -130,120 +132,106 @@ function RazorpayPaymentPage() {
     return () => clearTimeout(t);
   }, [orderId, razorpayOrderId, amount, openRazorpay]);
 
-  return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md">
-        {/* Step indicator */}
-        <div className="mb-6 flex items-center gap-3 text-sm font-medium">
-          <span className="flex items-center gap-1.5 text-brand-600">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </span>
-            Details
-          </span>
-          <div className="h-px flex-1 bg-brand-200" />
-          <span className="flex items-center gap-1.5 text-brand-600">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">2</span>
-            Payment
-          </span>
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="flex items-center gap-1.5 text-gray-400">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-xs font-bold text-gray-500">3</span>
-            Confirmed
-          </span>
-        </div>
+  const isTest = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID?.startsWith("rzp_test_");
+  const rupees = amount ? formatINRExact(Number(amount) / 100) : null;
 
-        {/* Payment card */}
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+  return (
+    <div className="flex min-h-[70vh] items-center justify-center bg-canvas px-4 py-10 sm:py-16">
+      <div className="w-full max-w-md">
+        <div className="overflow-hidden rounded-3xl bg-white shadow-xl shadow-black/5 ring-1 ring-black/5">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded bg-white/20">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </div>
-                <span className="text-sm font-bold text-white">Razorpay</span>
-              </div>
-              {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID?.startsWith("rzp_test_") ? (
-                <span className="rounded bg-white/10 px-2.5 py-0.5 text-xs font-medium text-blue-100">
-                  Test Mode
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 rounded bg-white/10 px-2.5 py-0.5 text-xs font-medium text-blue-100">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Secure payment
-                </span>
-              )}
-            </div>
+          <div className="flex items-center justify-between gap-3 bg-ink px-5 py-4 text-white">
+            <span className="flex items-center gap-2.5">
+              <LogoMark className="h-7 text-white" />
+              <span>
+                <span className="block text-sm font-semibold leading-tight">SNR Naturals</span>
+                <span className="block text-[11px] text-white/60">Step 2 of 2 · Payment</span>
+              </span>
+            </span>
+            {isTest ? (
+              <span className="rounded-full bg-honey-500/20 px-2.5 py-1 text-[11px] font-semibold text-honey-100">Test mode</span>
+            ) : (
+              <span className="flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/80">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Secure payment
+              </span>
+            )}
           </div>
 
-          {/* Body */}
-          <div className="p-6">
+          {rupees && stage !== "success" && (
+            <div className="border-b border-stone-100 px-5 py-4 text-center">
+              <p className="text-xs uppercase tracking-wider text-stone-500">Amount to pay</p>
+              <p className="mt-0.5 text-3xl font-bold tracking-tight text-ink">{rupees}</p>
+            </div>
+          )}
+
+          <div className="px-6 py-8">
             {(stage === "loading" || stage === "ready") && (
-              <div className="py-10 text-center">
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
-                <p className="mt-3 text-sm text-gray-500">Opening Razorpay payment...</p>
-                <p className="mt-1 text-xs text-gray-400">Complete payment in the popup window</p>
+              <div className="text-center">
+                <span className="mx-auto block h-10 w-10 animate-spin rounded-full border-[3px] border-brand-100 border-t-brand-700" />
+                <p className="mt-4 font-medium text-ink">Opening secure payment…</p>
+                <p className="mt-1 text-sm text-stone-500">Pay with UPI, card or net banking in the Razorpay window.</p>
               </div>
             )}
 
             {stage === "processing" && (
-              <div className="py-10 text-center">
-                <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
-                <p className="mt-3 font-medium text-gray-700">Verifying payment...</p>
-                <p className="mt-1 text-sm text-gray-400">Please wait, do not close this page</p>
+              <div className="text-center">
+                <span className="mx-auto block h-10 w-10 animate-spin rounded-full border-[3px] border-brand-100 border-t-brand-700" />
+                <p className="mt-4 font-medium text-ink">Confirming your payment…</p>
+                <p className="mt-1 text-sm text-stone-500">Please don&apos;t close or refresh this page.</p>
               </div>
             )}
 
             {stage === "success" && (
-              <div className="py-8 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="text-green-600">
+              <div className="text-center">
+                <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-700 ring-8 ring-brand-50/50">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
-                </div>
-                <h2 className="mt-3 text-lg font-bold text-gray-800">Payment Successful!</h2>
-                <p className="mt-1 text-sm text-gray-500">Redirecting to your order...</p>
+                </span>
+                <h2 className="mt-4 text-xl font-bold text-ink">Payment successful</h2>
+                <p className="mt-1 text-sm text-stone-500">Taking you to your order…</p>
               </div>
             )}
 
             {stage === "error" && (
-              <div className="py-8 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="text-red-600">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <div className="text-center">
+                <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   </svg>
-                </div>
-                <h2 className="mt-3 text-lg font-bold text-gray-800">Payment Issue</h2>
-                <p className="mt-1 text-sm text-red-600">{error}</p>
-                <div className="mt-5 flex gap-3 justify-center">
+                </span>
+                <h2 className="mt-4 text-lg font-bold text-ink">Payment not completed</h2>
+                <p className="mt-1 text-sm text-stone-600">{error}</p>
+                <p className="mt-2 text-xs text-stone-400">If money was deducted, please contact us with your phone number and we&apos;ll sort it out.</p>
+                <div className="mt-6 flex flex-col gap-2.5 sm:flex-row-reverse">
                   <button
                     onClick={() => {
                       setError(null);
                       setStage("loading");
                       openRazorpay();
                     }}
-                    className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                    className="flex-1 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-800"
                   >
-                    Retry Payment
+                    Try again
                   </button>
                   <button
-                    onClick={() => router.push("/cart")}
-                    className="rounded-lg bg-gray-100 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200"
+                    onClick={() => {
+                      startNavProgress();
+                      router.push("/cart");
+                    }}
+                    className="flex-1 rounded-full bg-white px-5 py-3 text-sm font-semibold text-stone-700 ring-1 ring-stone-200 transition hover:bg-stone-50"
                   >
-                    Return to Cart
+                    Back to cart
                   </button>
                 </div>
               </div>
             )}
           </div>
         </div>
+        <p className="mt-4 text-center text-xs text-stone-400">Payments are processed securely by Razorpay.</p>
       </div>
     </div>
   );
