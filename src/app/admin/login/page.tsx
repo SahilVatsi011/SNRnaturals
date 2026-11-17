@@ -1,5 +1,5 @@
 import { login } from "../auth-actions";
-import { Button } from "@/components/ui/Button";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Input, Label } from "@/components/ui/Input";
 import { STORE } from "@/lib/constants";
 import { LogoMark } from "@/components/Logo";
@@ -50,9 +50,9 @@ export default async function LoginPage({
               placeholder="••••••••"
             />
           </div>
-          <Button type="submit" size="lg" className="w-full">
+          <SubmitButton size="lg" className="w-full" pendingLabel="Signing in…">
             Sign in
-          </Button>
+          </SubmitButton>
         </form>
       </div>
     </div>

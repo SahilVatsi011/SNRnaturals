@@ -1,5 +1,6 @@
 "use client";
 
+import { startNavProgress } from "@/components/ui/NavProgress";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -42,6 +43,7 @@ export function StoreHeader() {
   function handleSearch(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const q = new FormData(e.currentTarget).get("q") as string;
+    startNavProgress();
     push(q ? `/search?q=${encodeURIComponent(q)}` : "/");
     setMobileSearchOpen(false);
   }

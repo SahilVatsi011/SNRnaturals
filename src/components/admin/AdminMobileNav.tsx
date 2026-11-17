@@ -1,5 +1,6 @@
 "use client";
 
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -116,12 +117,13 @@ export function AdminMobileNav({ email }: { email?: string | null }) {
                 <NavIcon d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" className="text-stone-400" />
               </Link>
               <form action={logout}>
-                <button
-                  type="submit"
+                <SubmitButton
+                  unstyled
+                  pendingLabel="Signing out…"
                   className="w-full rounded-xl bg-red-50 py-3 text-sm font-semibold text-red-600"
                 >
                   Sign out
-                </button>
+                </SubmitButton>
               </form>
             </div>
           </div>

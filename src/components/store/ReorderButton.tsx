@@ -1,5 +1,6 @@
 "use client";
 
+import { startNavProgress } from "@/components/ui/NavProgress";
 import { useRouter } from "next/navigation";
 import { getCart, saveCart, type CartItem } from "@/lib/cart";
 
@@ -50,6 +51,7 @@ export function ReorderButton({
 
     saveCart(merged);
     window.dispatchEvent(new Event("snr:cart"));
+    startNavProgress();
     router.push("/cart");
   }
 

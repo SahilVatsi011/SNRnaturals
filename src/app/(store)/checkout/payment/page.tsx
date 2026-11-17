@@ -1,5 +1,6 @@
 "use client";
 
+import { startNavProgress } from "@/components/ui/NavProgress";
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyPayment } from "../actions";
@@ -92,6 +93,7 @@ function RazorpayPaymentPage() {
         clearCart();
         setStage("success");
         setTimeout(() => {
+          startNavProgress();
           router.push(`/checkout/confirmed?token=${result.orderToken}`);
         }, 2000);
       },

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
 import { Card, CardHeader } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Input, Label } from "@/components/ui/Input";
 import NotConfiguredBanner from "@/components/admin/NotConfiguredBanner";
 import { createCoupon, deleteCoupon, toggleCouponActive } from "./actions";
@@ -71,8 +71,8 @@ export default async function CouponsPage() {
                         <form action={toggleCouponActive} className="inline">
                           <input type="hidden" name="id" value={c.id} />
                           <input type="hidden" name="active" value={String(c.active)} />
-                          <button
-                            type="submit"
+                          <SubmitButton
+                            unstyled
                             className={`rounded-full px-3 py-0.5 text-xs font-medium transition-colors ${
                               c.active
                                 ? "bg-green-100 text-green-700 hover:bg-green-200"
@@ -80,18 +80,15 @@ export default async function CouponsPage() {
                             }`}
                           >
                             {c.active ? "Active" : "Inactive"}
-                          </button>
+                          </SubmitButton>
                         </form>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <form action={deleteCoupon} className="inline">
                           <input type="hidden" name="id" value={c.id} />
-                          <button
-                            type="submit"
-                            className="text-sm text-red-600 hover:underline"
-                          >
+                          <SubmitButton unstyled pendingLabel="Deleting…" className="text-sm text-red-600 hover:underline">
                             Delete
-                          </button>
+                          </SubmitButton>
                         </form>
                       </td>
                     </tr>
@@ -154,9 +151,9 @@ export default async function CouponsPage() {
                 />
                 Active (customers can use this code)
               </label>
-              <Button type="submit" className="w-full">
+              <SubmitButton className="w-full" pendingLabel="Creating…">
                 Create Coupon
-              </Button>
+              </SubmitButton>
             </form>
           </Card>
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { startNavProgress } from "@/components/ui/NavProgress";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -38,6 +39,7 @@ export default function DateRangePicker({
     params.set("from", nextFrom);
     params.set("to", nextTo);
     params.set("preset", nextPreset);
+    startNavProgress();
     router.push(`${pathname}?${params.toString()}`);
   };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { startNavProgress } from "@/components/ui/NavProgress";
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -132,6 +133,7 @@ export function CheckoutForm({
       razorpayOrderId: result.razorpayOrderId!,
       amount: String(result.amount),
     });
+    startNavProgress();
     router.push(`/checkout/payment?${params.toString()}`);
   }
 

@@ -3,7 +3,7 @@ import { isSupabaseConfigured } from "@/lib/env";
 import { DEFAULTS } from "@/lib/constants";
 import { getFeeConfig } from "@/lib/pricing";
 import { Card, CardHeader } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { Input, Label } from "@/components/ui/Input";
 import NotConfiguredBanner from "@/components/admin/NotConfiguredBanner";
 import {
@@ -99,12 +99,9 @@ export default async function SettingsPage() {
                     <td className="px-3 py-2 text-right">
                       <form action={deleteDeliverySlab}>
                         <input type="hidden" name="id" value={s.id} />
-                        <button
-                          type="submit"
-                          className="text-sm text-red-600 hover:underline"
-                        >
+                        <SubmitButton unstyled pendingLabel="Deleting…" className="text-sm text-red-600 hover:underline">
                           Delete
-                        </button>
+                        </SubmitButton>
                       </form>
                     </td>
                   </tr>
@@ -154,7 +151,7 @@ export default async function SettingsPage() {
                 />
                 Active
               </label>
-              <Button type="submit">Add slab</Button>
+              <SubmitButton pendingLabel="Adding…">Add slab</SubmitButton>
             </div>
           </form>
           <p className="mt-2 text-xs text-stone-400">
@@ -198,7 +195,7 @@ export default async function SettingsPage() {
                 defaultValue={feeSetting?.smsCostPerOrder ?? feeConfig.smsCostPerOrder}
               />
             </div>
-            <Button type="submit" variant="secondary">Save fee settings</Button>
+            <SubmitButton variant="secondary" pendingLabel="Saving…">Save fee settings</SubmitButton>
           </form>
         </Card>
 
@@ -218,7 +215,7 @@ export default async function SettingsPage() {
                 defaultValue={currentThreshold}
               />
             </div>
-            <Button type="submit" variant="secondary">Save threshold</Button>
+            <SubmitButton variant="secondary" pendingLabel="Saving…">Save threshold</SubmitButton>
           </form>
         </Card>
       </div>
