@@ -7,7 +7,7 @@ import { getServiceRoleClient } from "@/lib/supabase/service";
 import { isSupabaseConfigured } from "@/lib/env";
 import { generateOrderToken } from "@/lib/order-utils";
 import { calculateDeliveryFee, type DeliverySlab, type DeliveryZone } from "@/lib/delivery";
-import { createRazorpayOrder, verifyRazorpayPayment } from "@/lib/razorpay";
+import { createRazorpayOrder, findSuccessfulPayment, verifyRazorpayPayment } from "@/lib/razorpay";
 import { normalizePhone } from "@/lib/phone";
 
 interface CartLine {
@@ -227,39 +227,49 @@ export async function verifyPayment(
     return { error: "Payment verification failed. Please contact support." };
   }
 
-  // Payment signature verified above. Use the service-role client
-  // for the update + stock deduction (orders are admin-managed, and
-  // anon users must not be able to mutate orders directly).
+  // Payment signature verified above. Orders are admin-managed, so use the
+  // service-role client for the update + stock deduction.
   const supabase = getServiceRoleClient();
-
-  // Fetch the order
   const { data: order, error: fetchError } = await supabase
     .from("orders")
     .select("id,order_token,payment_status,items")
     .eq("id", orderId)
     .single();
-
   if (fetchError || !order) return { error: "Order not found." };
 
-  // Don't double-process
-  if (order.payment_status === "paid") {
-    return { orderToken: order.order_token };
-  }
+  const marked = await markOrderPaid(supabase, order, razorpayPaymentId);
+  if (marked.error) return { error: marked.error };
+  return { orderToken: order.order_token };
+}
 
-  // Mark payment as paid
-  const { error: updateError } = await supabase
+type PayableOrder = { id: string; order_token: string; payment_status: string; items: unknown };
+
+/**
+ * Mark an order paid and deduct stock — exactly once, even if the browser's
+ * verify call and a status check arrive at the same time.
+ */
+async function markOrderPaid(
+  supabase: ReturnType<typeof getServiceRoleClient>,
+  order: PayableOrder,
+  paymentId: string,
+  method = "Razorpay"
+): Promise<{ error?: string }> {
+  if (order.payment_status === "paid") return {};
+
+  const { data: updated, error } = await supabase
     .from("orders")
     .update({
       payment_status: "paid",
-      payment_id: razorpayPaymentId,
-      payment_method: "Razorpay",
+      payment_id: paymentId,
+      payment_method: method,
       order_status: "processing",
     })
-    .eq("id", orderId);
+    .eq("id", order.id)
+    .neq("payment_status", "paid")
+    .select("id");
+  if (error) return { error: error.message };
+  if (!updated || updated.length === 0) return {}; // someone else just marked it paid
 
-  if (updateError) return { error: updateError.message };
-
-  // Deduct stock for each item
   const items = order.items as { product_id: string; qty: number }[];
   for (const item of items) {
     const { data: product } = await supabase
@@ -267,7 +277,6 @@ export async function verifyPayment(
       .select("stock_qty")
       .eq("id", item.product_id)
       .single();
-
     if (product) {
       await supabase
         .from("products")
@@ -278,6 +287,37 @@ export async function verifyPayment(
 
   // Stock changed — refresh cached product pages so "Sold out" shows promptly.
   revalidateTag(CACHE_TAGS.products);
+  return {};
+}
 
-  return { orderToken: order.order_token };
+/**
+ * Has this order been paid? Checks our database first, then asks Razorpay
+ * directly, so a payment is never lost if the browser couldn't report back.
+ * Safe to call publicly: it only marks an order paid when Razorpay confirms it.
+ */
+export async function checkPaymentStatus(
+  orderId: string
+): Promise<{ paid: boolean; orderToken?: string; error?: string }> {
+  if (!isSupabaseConfigured()) return { paid: false, error: "Store is not configured yet." };
+  if (!/^[0-9a-f-]{36}$/i.test(orderId)) return { paid: false, error: "Order not found." };
+
+  const supabase = getServiceRoleClient();
+  const { data: order } = await supabase
+    .from("orders")
+    .select("id,order_token,payment_status,items,total")
+    .eq("id", orderId)
+    .single();
+  if (!order) return { paid: false, error: "Order not found." };
+  if (order.payment_status === "paid") return { paid: true, orderToken: order.order_token };
+
+  try {
+    const payment = await findSuccessfulPayment(order.id, Math.round(Number(order.total) * 100));
+    if (!payment) return { paid: false };
+    const marked = await markOrderPaid(supabase, order, payment.paymentId);
+    if (marked.error) return { paid: false, error: marked.error };
+    return { paid: true, orderToken: order.order_token };
+  } catch (err) {
+    console.error("[checkout] payment status check failed:", err);
+    return { paid: false, error: "Could not reach the payment gateway. Please try again." };
+  }
 }

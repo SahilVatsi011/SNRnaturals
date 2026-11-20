@@ -43,3 +43,30 @@ export function verifyRazorpayPayment(
 
   return expectedSignature === razorpaySignature;
 }
+
+/**
+ * Ask Razorpay directly whether our order (receipt = our order id) was paid.
+ * Used when the browser never reported back after payment (e.g. the phone
+ * dropped the connection while returning from a UPI app).
+ * An "authorized" payment of the full amount is captured so the money settles.
+ */
+export async function findSuccessfulPayment(
+  receipt: string,
+  amountPaise: number
+): Promise<{ paymentId: string; method?: string } | null> {
+  const razorpay = getRazorpay();
+  const orders = await razorpay.orders.all({ receipt, count: 10 });
+  for (const order of orders.items ?? []) {
+    if (order.receipt !== receipt || Number(order.amount) !== amountPaise) continue;
+    const payments = await razorpay.orders.fetchPayments(order.id);
+    for (const p of payments.items ?? []) {
+      if (Number(p.amount) !== amountPaise) continue;
+      if (p.status === "captured") return { paymentId: p.id, method: p.method };
+      if (p.status === "authorized") {
+        const captured = await razorpay.payments.capture(p.id, p.amount, p.currency);
+        if (captured.status === "captured") return { paymentId: p.id, method: p.method };
+      }
+    }
+  }
+  return null;
+}

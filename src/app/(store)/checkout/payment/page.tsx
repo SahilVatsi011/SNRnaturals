@@ -3,10 +3,27 @@
 import { startNavProgress } from "@/components/ui/NavProgress";
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { verifyPayment } from "../actions";
+import { checkPaymentStatus, verifyPayment } from "../actions";
 import { saveCart } from "@/lib/cart";
 import { formatINRExact } from "@/lib/format";
 import { LogoMark } from "@/components/Logo";
+
+/** Retry a server call that can fail on a flaky phone connection, with a timeout per try. */
+async function withRetry<T>(fn: () => Promise<T>, tries = 3, timeoutMs = 15000): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await Promise.race([
+        fn(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs)),
+      ]);
+    } catch (err) {
+      lastErr = err;
+      await new Promise((r) => setTimeout(r, 1200 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
 
 function clearCart() {
   saveCart([]);
@@ -55,6 +72,36 @@ function RazorpayPaymentPage() {
 
   const [stage, setStage] = useState<Stage>("loading");
   const [error, setError] = useState<string | null>(null);
+  // True once Razorpay says the customer paid: from then on we only ever
+  // check status, never offer to pay again (avoids double payments).
+  const [paymentMade, setPaymentMade] = useState(false);
+
+  const finishPaid = useCallback(
+    (orderToken?: string) => {
+      clearCart();
+      setStage("success");
+      setTimeout(() => {
+        startNavProgress();
+        router.push(orderToken ? `/checkout/confirmed?token=${orderToken}` : "/order-history");
+      }, 1500);
+    },
+    [router]
+  );
+
+  /** Ask the server (which asks Razorpay) whether this order is paid. */
+  const confirmPaid = useCallback(async () => {
+    if (!orderId) return;
+    setStage("processing");
+    setError(null);
+    try {
+      const res = await withRetry(() => checkPaymentStatus(orderId));
+      if (res.paid) return finishPaid(res.orderToken);
+      setError(res.error || "We haven't received a confirmation for this payment yet.");
+    } catch {
+      setError("Your connection seems slow. Your payment is safe — tap “Check payment status” again.");
+    }
+    setStage("error");
+  }, [orderId, finishPaid]);
 
   const openRazorpay = useCallback(async () => {
     const scriptLoaded = await loadRazorpayScript();
@@ -80,24 +127,22 @@ function RazorpayPaymentPage() {
       name: "SNR Naturals",
       order_id: razorpayOrderId,
       handler: async (response: RazorpayResponse) => {
+        setPaymentMade(true);
         setStage("processing");
-        const result = await verifyPayment(
-          orderId,
-          response.razorpay_order_id,
-          response.razorpay_payment_id,
-          response.razorpay_signature
-        );
-        if (result.error) {
-          setError(result.error);
-          setStage("error");
-          return;
+        try {
+          const result = await withRetry(() =>
+            verifyPayment(
+              orderId,
+              response.razorpay_order_id,
+              response.razorpay_payment_id,
+              response.razorpay_signature
+            )
+          );
+          if (result.orderToken) return finishPaid(result.orderToken);
+        } catch {
+          /* network trouble — fall through to a direct status check */
         }
-        clearCart();
-        setStage("success");
-        setTimeout(() => {
-          startNavProgress();
-          router.push(`/checkout/confirmed?token=${result.orderToken}`);
-        }, 2000);
+        await confirmPaid();
       },
       prefill: {
         name: customerName,
@@ -116,7 +161,7 @@ function RazorpayPaymentPage() {
 
     const rzp = new window.Razorpay(options);
     rzp.open();
-  }, [orderId, razorpayOrderId, amount, customerName, customerPhone, router]);
+  }, [orderId, razorpayOrderId, amount, customerName, customerPhone, finishPaid, confirmPaid]);
 
   useEffect(() => {
     if (!orderId || !razorpayOrderId || !amount) {
@@ -126,11 +171,24 @@ function RazorpayPaymentPage() {
       }, 0);
       return () => clearTimeout(t);
     }
-    const t = setTimeout(() => {
-      openRazorpay();
-    }, 0);
-    return () => clearTimeout(t);
-  }, [orderId, razorpayOrderId, amount, openRazorpay]);
+    // Coming back to this page (refresh, or returning from a UPI app after the
+    // page was reloaded)? If the order is already paid, don't ask to pay again.
+    let cancelled = false;
+    checkPaymentStatus(orderId)
+      .then((res) => {
+        if (cancelled) return;
+        if (res.paid) {
+          setPaymentMade(true);
+          finishPaid(res.orderToken);
+        } else openRazorpay();
+      })
+      .catch(() => {
+        if (!cancelled) openRazorpay();
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [orderId, razorpayOrderId, amount, openRazorpay, finishPaid]);
 
   const isTest = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID?.startsWith("rzp_test_");
   const rupees = amount ? formatINRExact(Number(amount) / 100) : null;
@@ -203,19 +261,20 @@ function RazorpayPaymentPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                   </svg>
                 </span>
-                <h2 className="mt-4 text-lg font-bold text-ink">Payment not completed</h2>
+                <h2 className="mt-4 text-lg font-bold text-ink">{paymentMade ? "Confirming your payment" : "Payment not completed"}</h2>
                 <p className="mt-1 text-sm text-stone-600">{error}</p>
                 <p className="mt-2 text-xs text-stone-400">If money was deducted, please contact us with your phone number and we&apos;ll sort it out.</p>
                 <div className="mt-6 flex flex-col gap-2.5 sm:flex-row-reverse">
                   <button
                     onClick={() => {
+                      if (paymentMade) return confirmPaid();
                       setError(null);
                       setStage("loading");
                       openRazorpay();
                     }}
                     className="flex-1 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-800"
                   >
-                    Try again
+                    {paymentMade ? "Check payment status" : "Try again"}
                   </button>
                   <button
                     onClick={() => {
