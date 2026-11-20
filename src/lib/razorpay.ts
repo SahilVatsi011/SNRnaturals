@@ -70,3 +70,20 @@ export async function findSuccessfulPayment(
   }
   return null;
 }
+
+/** Our order id for a Razorpay order (we create Razorpay orders with receipt = our order id). */
+export async function getReceiptForRazorpayOrder(razorpayOrderId: string): Promise<string | null> {
+  const order = await getRazorpay().orders.fetch(razorpayOrderId);
+  return order?.receipt ?? null;
+}
+
+/**
+ * Check the X-Razorpay-Signature header of a webhook: HMAC-SHA256 of the raw
+ * request body with the webhook secret set in the Razorpay dashboard.
+ */
+export function verifyWebhookSignature(rawBody: string, signature: string, secret: string): boolean {
+  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signature || "");
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
