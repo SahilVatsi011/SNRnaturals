@@ -137,28 +137,28 @@ export default function StoreLayout({
           </div>
 
           {/* Bottom bar */}
-          <div className="mt-8 flex flex-col items-center justify-between gap-2 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row">
+          <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row">
             <p>&copy; {new Date().getFullYear()} {STORE.name}. All rights reserved.</p>
-            <p>Made in Himachal Pradesh</p>
-          </div>
-
-          {/* Developer credit */}
-          <div className="mt-5 flex justify-center border-t border-white/5 pt-5">
-            <a
-              href="https://www.geno7.com"
-              target="_blank"
-              rel="noopener"
-              className="group inline-flex items-center gap-2.5 text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white/70"
-            >
-              Designed &amp; managed by
-              <Image
-                src="/brand/geno7-white.png"
-                alt="GENO7"
-                width={289}
-                height={109}
-                className="h-6 w-auto opacity-80 transition-opacity group-hover:opacity-100"
-              />
-            </a>
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+              <span>Made in Himachal Pradesh</span>
+              <span aria-hidden className="hidden h-3 w-px bg-white/15 sm:block" />
+              <a
+                href="https://www.geno7.com"
+                target="_blank"
+                rel="noopener"
+                aria-label="Designed and managed by GENO7"
+                className="group inline-flex items-center gap-1.5 text-white/50 transition-colors hover:text-white/80"
+              >
+                <span>Designed by</span>
+                <Image
+                  src="/brand/geno7-white.png"
+                  alt="GENO7"
+                  width={289}
+                  height={109}
+                  className="h-[17px] w-auto -translate-y-[2px] opacity-70 transition-opacity group-hover:opacity-100"
+                />
+              </a>
+            </div>
           </div>
         </div>
       </footer>
